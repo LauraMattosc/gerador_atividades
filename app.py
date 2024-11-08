@@ -4,15 +4,15 @@ import requests
 import json
 
 # Configuração do Streamlit
-st.title('🧮 Gerador de Atividades de Matemática Personalizadas')
-st.write('Este aplicativo cria atividades de matemática práticas e envolventes para ajudar alunos com dificuldades.')
+st.title('🧮 Gerador de Atividades')
+st.write('Este aplicativo cria atividades práticas e envolventes.')
 
 # Entrada de credenciais
 api_token = st.text_input("🔑 Insira seu token de autenticação da API principal:", type="password")
 groq_api_key = st.text_input("🔐 Insira sua chave API do Groq:", type="password")
 
 # Seleção de tema e dificuldade
-tema = st.selectbox("📚 Selecione o tema da atividade:", ["Frações", "Multiplicação", "Divisão", "Problemas de Palavra"])
+tema = st.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
 nivel_dificuldade = st.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
 
 # Botão para iniciar a geração da atividade

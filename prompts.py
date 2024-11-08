@@ -12,7 +12,7 @@ def get_activity_prompt(atividade_texto):
     print("Status: Gerando o prompt para a API Groq.")  # Status para debug
 
     prompt = f"""
-    Baseado nas informações fornecidas a seguir, crie uma atividade de matemática detalhada, com um passo a passo claro, que possa ser utilizada por um professor do ensino fundamental. A atividade deve incluir:
+    Baseado nas informações fornecidas a seguir, crie uma atividade, com um passo a passo claro, que possa ser utilizada por um professor do ensino fundamental. A atividade deve incluir:
     - Introdução e contexto da atividade.
     - Descrição detalhada dos passos que os alunos devem seguir.
     - Perguntas desafiadoras que incentivem o pensamento crítico.

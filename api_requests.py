@@ -24,19 +24,17 @@ def fetch_activity(api_token, tema, nivel_dificuldade):
 
     try:
         response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
-        print(f"Status Code: {response.status_code}")
         response.raise_for_status()
         fragmentos = response.json()
         return "".join([frag['text'] for frag in fragmentos])
     except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
+        raise Exception(f"HTTP error occurred: {http_err}")
     except requests.exceptions.ConnectionError as conn_err:
-        print(f"Connection error occurred: {conn_err}")
+        raise Exception(f"Connection error occurred: {conn_err}")
     except requests.exceptions.Timeout as timeout_err:
-        print(f"Timeout error occurred: {timeout_err}")
+        raise Exception(f"Timeout error occurred: {timeout_err}")
     except requests.exceptions.RequestException as req_err:
-        print(f"An error occurred: {req_err}")
-    return None
+        raise Exception(f"An error occurred: {req_err}")
 
 def process_with_groq(groq_api_key, prompt):
     """Processa o texto com a API Groq para gerar uma atividade detalhada.
@@ -72,11 +70,9 @@ def process_with_groq(groq_api_key, prompt):
         if resposta_final:
             return resposta_final
         else:
-            print("Falha ao processar a resposta.")
-            return None
+            raise Exception("Falha ao processar a resposta.")
     except Exception as e:
-        print(f"Erro ao processar com Groq: {e}")
-        return None
+        raise Exception(f"Erro ao processar com Groq: {e}")
 
 def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
     """Gera uma atividade usando a API RAG.
@@ -95,16 +91,13 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
 
     try:
         response = requests.post(url, headers=headers, json=data)
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Text: {response.text}")
         response.raise_for_status()
         return response.json().get("atividade_texto")
     except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
+        raise Exception(f"HTTP error occurred: {http_err}")
     except requests.exceptions.ConnectionError as conn_err:
-        print(f"Connection error occurred: {conn_err}")
+        raise Exception(f"Connection error occurred: {conn_err}")
     except requests.exceptions.Timeout as timeout_err:
-        print(f"Timeout error occurred: {timeout_err}")
+        raise Exception(f"Timeout error occurred: {timeout_err}")
     except requests.exceptions.RequestException as req_err:
-        print(f"An error occurred: {req_err}")
-    return None
+        raise Exception(f"An error occurred: {req_err}")

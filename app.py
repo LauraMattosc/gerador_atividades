@@ -95,26 +95,28 @@ def main():
         if st.button("Gerar Atividade"):
             if api_token and groq_api_key:
                 st.info("🚀 Gerando a atividade, por favor, aguarde...")
-                atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+                try:
+                    atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+                    if atividade_texto:
+                        st.success("✅ Requisição à API principal bem-sucedida.")
+                        resposta_final = process_with_groq(groq_api_key, atividade_texto)
 
-                if atividade_texto:
-                    st.success("✅ Requisição à API principal bem-sucedida.")
-                    resposta_final = process_with_groq(groq_api_key, atividade_texto)
-
-                    if resposta_final:
-                        st.markdown(
-                            f"""
-                            <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                            <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                            <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        if resposta_final:
+                            st.markdown(
+                                f"""
+                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
+                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.error("❌ Erro ao processar a atividade com a API Groq.")
                     else:
-                        st.error("❌ Erro ao processar a atividade com a API Groq.")
-                else:
-                    st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                        st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                except Exception as e:
+                    st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
             else:
                 st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
 

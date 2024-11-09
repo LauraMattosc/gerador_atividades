@@ -12,7 +12,6 @@ st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
     st.title('📊 Painel da Classe e Gerador de Atividades')
-    st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
 # Entradas principais do usuário
 def get_user_inputs(data):
@@ -49,19 +48,50 @@ def display_class_data(data, turma):
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     labels = hypothesis_counts.index
     sizes = hypothesis_counts.values
-    colors = ['#ff9999', '#ffcc99', '#99ff99']  # Cores específicas para cada hipótese
-    fig1, ax1 = plt.subplots(figsize=(6, 4))  # Ajuste o tamanho do gráfico de pizza
-    ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
-    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    colors = ['#86E085', '#C8FFBB', '#FFF6A1', '#FFC9A3', '#FFA9B8', '#FFFFFF']
+
+    # Ajustar para um tamanho ainda menor e mais proporcional
+    fig1, ax1 = plt.subplots(figsize=(1.5, 1.25))
+
+    # Criar o gráfico de pizza com legendas fora do gráfico
+    wedges, texts, autotexts = ax1.pie(sizes, 
+                                    labels=None,  # Remove as labels do gráfico
+                                    autopct='%1.1f%%', 
+                                    startangle=90, 
+                                    colors=colors)
+
+    # Adicionar legenda à direita
+    ax1.legend(wedges, labels,
+            title="Hipóteses",
+            loc="center left",
+            bbox_to_anchor=(1, 0, 0.5, 1),
+            prop={'size': 4})  # Diminuir ainda mais o tamanho da fonte da legenda
+
+    # Ajustar o tamanho da fonte das porcentagens
+    plt.setp(autotexts, size=4)
+
+    # Ajustar o layout para incluir a legenda
+    plt.tight_layout()
+
     st.pyplot(fig1)
 
-    # Exibindo tabela de alunos alfabetizados
-    st.subheader('Tabela de Alunos Alfabetizados')
-    styled_data = data[['student_name', 'class_name', 'hypothesis_name']].style.applymap(
-        lambda x: 'background-color: #ff9999' if x == 'Hipótese Inicial' else 'background-color: #ffcc99' if x == 'Hipótese Intermediária' else 'background-color: #99ff99',
-        subset=['hypothesis_name']
-    )
-    st.dataframe(styled_data, width=1000)  # Aumenta a largura da tabela
+    # Exibindo tabela de alunos com cores padronizadas
+    st.subheader('Tabela de Alunos por Hipótese')
+    color_map = {
+        'Alfabética': '#86E085',
+        'Silábico-alfabética': '#C8FFBB',
+        'Silábica c/ valor': '#FFF6A1',
+        'Silábica s/ valor': '#FFC9A3',
+        'Pré-silábica': '#FFA9B8',
+        'Não se aplica': '#FFFFFF'
+    }
+
+    def highlight_hypothesis(val):
+        color = color_map.get(val, '#FFFFFF')
+        return f'background-color: {color}'
+
+    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(highlight_hypothesis, subset=['hypothesis_name'])
+    st.dataframe(styled_data, width=1000)
 
 # Função para analisar os dados da turma e fornecer dicas
 def analyze_class_data(data, groq_api_key):
@@ -78,7 +108,6 @@ def main():
     # Carregar os dados do CSV
     try:
         data = pd.read_csv('dados.csv')
-        st.write("Dados carregados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao carregar os dados do CSV: {e}")
         return
@@ -86,7 +115,7 @@ def main():
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
     # Dados simulados para exemplo
-    teacher = {'name': 'Prof. Silva'}
+    teacher = {'name': 'Silva'}
     school = {'name': 'Escola Futuro Brilhante'}
     class_data = {'name': turma, 'year': '2023'}
 
@@ -96,7 +125,6 @@ def main():
     st.markdown(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
 
     current_month = datetime.datetime.now().strftime("%B de %Y")
-    st.write(f"**Data da Sondagem:** {current_month}")
 
     # Resumo estratégico dos resultados das hipóteses em porcentagem
     st.subheader("Resumo Estratégico")

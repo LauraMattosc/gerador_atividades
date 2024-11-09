@@ -33,8 +33,13 @@ def process_with_groq(groq_api_key, prompt):
     """Processa o texto com a API Groq para gerar uma atividade detalhada."""
     try:
         client = Groq(api_key=groq_api_key)
-        print(f"Iniciando requisição Groq com prompt de tamanho: {len(prompt)}")  # Log do tamanho do prompt
+        print("🔄 Iniciando processamento com Groq...")
         
+        # Verificação do tamanho do prompt
+        if len(prompt) > 4000:  # ajuste este limite conforme necessário
+            print("⚠️ Alerta: Prompt muito longo")
+            return None
+            
         completion = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[{
@@ -42,30 +47,30 @@ def process_with_groq(groq_api_key, prompt):
                 "content": prompt
             }],
             temperature=0.7,
-            max_tokens=1500,
+            max_tokens=1000,  # reduzido para evitar respostas muito longas
             top_p=1,
             stream=True,
             stop=None
         )
         
         resposta_final = ""
+        print("📝 Recebendo resposta...")
+        
         for chunk in completion:
             if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
                 resposta_final += chunk.choices[0].delta.content
-                
-        print(f"Tamanho da resposta gerada: {len(resposta_final)}")  # Log do tamanho da resposta
         
         if resposta_final:
+            print("✅ Resposta gerada com sucesso!")
             return resposta_final
         else:
-            print("Status: Falha ao processar a resposta.")
+            print("❌ Resposta vazia recebida")
+            return None
             
     except Exception as e:
-        print(f"Erro detalhado na API Groq: {str(e)}")  # Log detalhado do erro
+        print(f"❌ Erro específico: {str(e)}")
+        print(f"📍 Tipo de erro: {type(e).__name__}")
         return None
-
-    return None
-
 
 def generate_activity_with_rag(api_token, prompt):
     """Gera uma atividade usando a API RAG.

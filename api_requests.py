@@ -13,32 +13,21 @@ def fetch_activity(api_token, tema, nivel_dificuldade):
     Retorna:
     str: Texto concatenado dos fragmentos da atividade ou None se a requisição falhar.
     """
-    # URL da API principal para obter os fragmentos de texto
     url_fragments = "https://ragne.codebit.dev/rag/text-fragments"
-
-    # Cabeçalho da requisição com autenticação
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_token}"
     }
-
-    # Payload contendo o pedido da atividade
     payload_atividade = {
         "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
     }
-
-    # Envio da requisição POST para a API
     response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
-
-    # Verificação do status da resposta
     if response.status_code in [200, 201]:
-        # Extrai o conteúdo JSON da resposta e concatena os textos dos fragmentos
         fragmentos = response.json()
-        print("Status: Requisição bem-sucedida.")  # Adiciona um status para debug
+        print("Status: Requisição bem-sucedida.")
         return "".join([frag['text'] for frag in fragmentos])
     else:
-        print(f"Status: Erro na requisição. Código {response.status_code}")  # Adiciona um status de erro
-    # Retorna None em caso de falha na requisição
+        print(f"Status: Erro na requisição. Código {response.status_code}")
     return None
 
 def process_with_groq(groq_api_key, prompt):
@@ -51,10 +40,7 @@ def process_with_groq(groq_api_key, prompt):
     Retorna:
     str: Resposta gerada pela API ou None se falhar.
     """
-    # Criação do cliente da API Groq com a chave fornecida
     client = Groq(api_key=groq_api_key)
-
-    # Envio da requisição de conclusão de chat para a API Groq
     completion = client.chat.completions.create(
         model="llama3-8b-8192",
         messages=[{
@@ -67,18 +53,52 @@ def process_with_groq(groq_api_key, prompt):
         stream=True,
         stop=None
     )
-
     resposta_final = ""
-    # Iteração sobre os chunks de resposta recebidos
     for chunk in completion:
-        # Verifica se a resposta contém conteúdo válido
         if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
             resposta_final += chunk.choices[0].delta.content
-
-    # Verifica se a resposta é válida e imprime o status
     if resposta_final:
-        print("Status: Resposta processada com sucesso.")  # Status de sucesso
+        print("Status: Resposta processada com sucesso.")
         return resposta_final
     else:
-        print("Status: Falha ao processar a resposta.")  # Status de falha
+        print("Status: Falha ao processar a resposta.")
     return None
+
+def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
+    """Gera uma atividade usando a API RAG.
+
+    Parâmetros:
+    api_token (str): Token de autenticação da API principal.
+    tema (str): Tema da atividade a ser gerada.
+    nivel_dificuldade (str): Nível de dificuldade da atividade.
+
+    Retorna:
+    str: Texto da atividade gerada ou None se a requisição falhar.
+    """
+    url = "https://ragne.codebit.dev/rag/text-fragments"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_token}"
+    }
+    data = {
+        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        resposta_json = response.json()
+        print(f"Resposta da API: {resposta_json}")
+        if isinstance(resposta_json, list):
+            return "".join([frag['text'] for frag in resposta_json])
+        else:
+            raise Exception(f"Resposta inesperada da API: esperava uma lista, mas recebeu {type(resposta_json)}")
+    except requests.exceptions.HTTPError as http_err:
+        error_message = response.json().get('message', 'No additional error message provided')
+        raise Exception(f"HTTP error occurred: {http_err} - {error_message}")
+    except requests.exceptions.ConnectionError as conn_err:
+        raise Exception(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        raise Exception(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        raise Exception(f"An error occurred: {req_err}")

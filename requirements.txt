@@ -2,3 +2,6 @@ streamlit==1.18.1
 requests==2.31.0
 altair==4.2.0
 groq
+pandas
+datetime
+matplotlib

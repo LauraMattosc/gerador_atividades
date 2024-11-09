@@ -1,11 +1,15 @@
 import streamlit as st
-from api_requests import fetch_activity, process_with_groq
+import pandas as pd
+import datetime
+import matplotlib.pyplot as plt
+from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 
 # Configuração da interface do Streamlit
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
-    st.title('🧮 Gerador de Atividades')
-    st.write('Este aplicativo cria atividades práticas e envolventes.')
+    st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
+    st.title('📊 Painel da Classe e Gerador de Atividades')
+    st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
 # Entradas principais do usuário
 def get_user_inputs():
@@ -14,58 +18,107 @@ def get_user_inputs():
     Retorna:
     tuple: Contendo as credenciais da API, tema e nível de dificuldade.
     """
-    # Entrada de token de autenticação para a API principal
-    api_token = st.text_input("🔑 Insira seu token de autenticação da API principal:", type="password")
-    # Entrada de chave de autenticação para a API Groq
-    groq_api_key = st.text_input("🔐 Insira sua chave API do Groq:", type="password")
-    # Seleção do tema da atividade
-    tema = st.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
-    # Seleção do nível de dificuldade
-    nivel_dificuldade = st.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
-    return api_token, groq_api_key, tema, nivel_dificuldade
+    st.sidebar.header("Configurações da Atividade")
+    tema = st.sidebar.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
+    nivel_dificuldade = st.sidebar.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
+    return tema, nivel_dificuldade
+
+# Função para buscar dados e mostrar informações da classe (mock)
+def display_class_data():
+    # Dados simulados para exemplo
+    teacher = {'name': 'Prof. Silva'}
+    school = {'name': 'Escola Futuro Brilhante'}
+    class_data = {'name': 'Turma A', 'year': '2023'}
+    students = pd.DataFrame({
+        'name': ['Alice', 'Bruno', 'Carla', 'Daniel'],
+        'hypothesis': ['A', 'B', 'A', 'C'],
+        'comment': ['Progresso excelente', None, 'Precisa de mais apoio', 'Esforço consistente']
+    })
+
+    # Exibindo informações da classe
+    st.subheader("Informações da Classe")
+    st.write(f"**Professor(a):** {teacher['name']}")
+    st.write(f"**Escola:** {school['name']}")
+    st.write(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
+
+    current_month = datetime.datetime.now().strftime("%B de %Y")
+    st.write(f"**Data da Sondagem:** {current_month}")
+
+    st.subheader("Resumo das Hipóteses")
+    grouped_hypotheses = students.groupby('hypothesis').size().reset_index(name='Quantidade de Alunos')
+    st.table(grouped_hypotheses)
+
+    # Gráfico de barras das hipóteses
+    st.subheader("Distribuição das Hipóteses")
+    fig, ax = plt.subplots()
+    ax.bar(grouped_hypotheses['hypothesis'], grouped_hypotheses['Quantidade de Alunos'], color='skyblue')
+    ax.set_xlabel('Hipótese')
+    ax.set_ylabel('Quantidade de Alunos')
+    ax.set_title('Distribuição das Hipóteses dos Alunos')
+    st.pyplot(fig)
+
+    st.subheader("Lista de Alunos")
+    for _, row in students.iterrows():
+        st.write(f"**Nome:** {row['name']}")
+        st.markdown(
+            f"<div style='background-color: #E3E4E5; padding: 5px; border-radius: 5px; display: inline-block;'>{row['hypothesis']}</div>",
+            unsafe_allow_html=True
+        )
+        if row['comment']:
+            with st.expander("Ver Comentário"):
+                st.write(f"{row['comment']}")
 
 # Função principal para lidar com a lógica do aplicativo
 def main():
     configure_ui()
-    api_token, groq_api_key, tema, nivel_dificuldade = get_user_inputs()
+    tema, nivel_dificuldade = get_user_inputs()
 
-    # Verifica se o botão foi pressionado
-    if st.button("Gerar Atividade"):
-        # Verifica se as credenciais foram fornecidas
-        if api_token and groq_api_key:
-            st.info("🚀 Gerando a atividade, por favor, aguarde...")
-            # Faz a requisição para obter o texto da atividade
-            atividade_texto = fetch_activity(api_token, tema, nivel_dificuldade)
+    # Carregar as credenciais do arquivo secrets.toml
+    try:
+        api_token = st.secrets["api"]["api_token"]
+        groq_api_key = st.secrets["api"]["groq_api_key"]
+    except Exception as e:
+        st.error(f"Erro ao carregar as credenciais: {e}")
+        return
 
-            # Verifica se a requisição foi bem-sucedida
-            if atividade_texto:
-                st.success("✅ Requisição à API principal bem-sucedida.")
-                print("Status: Atividade gerada com sucesso da API principal.")  # Status para debug
+    # Verificar se as credenciais foram carregadas corretamente
+    if not api_token or not groq_api_key:
+        st.error("As credenciais da API não foram carregadas corretamente.")
+        return
 
-                # Processa o texto com a API Groq
-                resposta_final = process_with_groq(groq_api_key, atividade_texto)
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 
-                # Verifica se a resposta final foi gerada com sucesso
-                if resposta_final:
-                    print("Status: Atividade processada com sucesso pela API Groq.")  # Status para debug
-                    st.markdown(
-                        f"""
-                        <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                        <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                        <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                else:
-                    print("Status: Falha ao processar a atividade com a API Groq.")  # Status de falha
-                    st.error("❌ Erro ao processar a atividade com a API Groq.")
+    with tabs[0]:
+        display_class_data()
+
+    with tabs[1]:
+        if st.button("Gerar Atividade"):
+            if api_token and groq_api_key:
+                st.info("🚀 Gerando a atividade, por favor, aguarde...")
+                try:
+                    atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+                    if atividade_texto:
+                        st.success("✅ Requisição à API principal bem-sucedida.")
+                        resposta_final = process_with_groq(groq_api_key, atividade_texto)
+
+                        if resposta_final:
+                            st.markdown(
+                                f"""
+                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
+                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.error("❌ Erro ao processar a atividade com a API Groq.")
+                    else:
+                        st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                except Exception as e:
+                    st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
             else:
-                print("Status: Erro na requisição à API principal.")  # Status de erro
-                st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
-        else:
-            print("Status: Credenciais não fornecidas.")  # Status de aviso
-            st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
+                st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
 
 if __name__ == "__main__":
     main()

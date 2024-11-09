@@ -27,9 +27,15 @@ def fetch_activity(api_token, tema, nivel_dificuldade):
         response.raise_for_status()
         fragmentos = response.json()
         return "".join([frag['text'] for frag in fragmentos])
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição: {e}")
-        return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.ConnectionError as conn_err:
+        print(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        print(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"An error occurred: {req_err}")
+    return None
 
 def process_with_groq(groq_api_key, prompt):
     """Processa o texto com a API Groq para gerar uma atividade detalhada.
@@ -90,29 +96,12 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         return response.json().get("atividade_texto")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição RAG: {e}")
-        return None
-
-def generate_activity_with_llama(api_token, tema, nivel_dificuldade):
-    """Gera uma atividade usando a API LLaMA.
-
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
-
-    Retorna:
-    str: Texto da atividade gerada ou None se a requisição falhar.
-    """
-    url = "https://api.exemplo.com/llama"
-    headers = {"Authorization": f"Bearer {api_token}"}
-    data = {"tema": tema, "nivel_dificuldade": nivel_dificuldade}
-
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json().get("atividade_texto")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição LLaMA: {e}")
-        return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.ConnectionError as conn_err:
+        print(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        print(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"An error occurred: {req_err}")
+    return None

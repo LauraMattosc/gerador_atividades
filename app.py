@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag, generate_activity_with_llama
+from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 
 # Configuração da interface do Streamlit
 def configure_ui():
@@ -90,58 +90,6 @@ def main():
                         f"""
                         <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
                         <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                        <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                else:
-                    st.error("❌ Erro ao processar a atividade com a API Groq.")
-            else:
-                st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
-        else:
-            st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
-
-    if st.sidebar.button("Gerar Atividade com RAG"):
-        if api_token and groq_api_key:
-            st.info("🚀 Gerando a atividade com RAG, por favor, aguarde...")
-            atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
-
-            if atividade_texto:
-                st.success("✅ Requisição à API principal bem-sucedida.")
-                resposta_final = process_with_groq(groq_api_key, atividade_texto)
-
-                if resposta_final:
-                    st.markdown(
-                        f"""
-                        <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                        <h3 style="color:#2a9d8f;">📝 Resultado da Atividade com RAG:</h3>
-                        <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                else:
-                    st.error("❌ Erro ao processar a atividade com a API Groq.")
-            else:
-                st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
-        else:
-            st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
-
-    if st.sidebar.button("Gerar Atividade com LLaMA"):
-        if api_token and groq_api_key:
-            st.info("🚀 Gerando a atividade com LLaMA, por favor, aguarde...")
-            atividade_texto = generate_activity_with_llama(api_token, tema, nivel_dificuldade)
-
-            if atividade_texto:
-                st.success("✅ Requisição à API principal bem-sucedida.")
-                resposta_final = process_with_groq(groq_api_key, atividade_texto)
-
-                if resposta_final:
-                    st.markdown(
-                        f"""
-                        <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                        <h3 style="color:#2a9d8f;">📝 Resultado da Atividade com LLaMA:</h3>
                         <p style="font-size:16px; color:#264653;">{resposta_final}</p>
                         </div>
                         """,

@@ -1,173 +1,124 @@
-import os
 import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from sqlalchemy import create_engine
-from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
-
-# Função para carregar os dados do banco de dados
-def load_data():
-    try:
-        # Verificar se a chave "database" está presente
-        if "database" not in st.secrets:
-            st.error("A chave 'database' não está presente em st.secrets.")
-            st.write("Chaves disponíveis em st.secrets:", list(st.secrets.keys()))
-            return None
-
-        user = st.secrets["database"]["DB_USER"]
-        password = st.secrets["database"]["DB_PASSWORD"]
-        host = st.secrets["database"]["DB_HOST"]
-        port = st.secrets["database"]["DB_PORT"]
-        database = st.secrets["database"]["DB_NAME"]
-        st.write("Credenciais do banco de dados carregadas com sucesso.")
-    except KeyError as e:
-        st.error(f"Erro ao acessar as credenciais do banco de dados: {e}")
-        return None
-
-    # Verificações adicionais das credenciais
-    if not user:
-        st.error("Usuário do banco de dados não fornecido.")
-        return None
-    if not password:
-        st.error("Senha do banco de dados não fornecida.")
-        return None
-    if not host:
-        st.error("Host do banco de dados não fornecido.")
-        return None
-    if not port:
-        st.error("Porta do banco de dados não fornecida.")
-        return None
-    if not database:
-        st.error("Nome do banco de dados não fornecido.")
-        return None
-
-    # Verificação do tipo de dados das credenciais
-    if not isinstance(user, str):
-        st.error("Usuário do banco de dados deve ser uma string.")
-        return None
-    if not isinstance(password, str):
-        st.error("Senha do banco de dados deve ser uma string.")
-        return None
-    if not isinstance(host, str):
-        st.error("Host do banco de dados deve ser uma string.")
-        return None
-    if not isinstance(port, int):
-        st.error("Porta do banco de dados deve ser um inteiro.")
-        return None
-    if not isinstance(database, str):
-        st.error("Nome do banco de dados deve ser uma string.")
-        return None
-
-    connection_string = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
-    st.write(f"String de conexão: {connection_string}")
-
-    try:
-        engine = create_engine(connection_string)
-        query = "SELECT * FROM diagnostic_assessment"  # Substitua pela sua consulta SQL
-        data = pd.read_sql(query, engine)
-        st.write("Dados carregados com sucesso.")
-        return data
-    except Exception as e:
-        st.error(f"Erro ao conectar ao banco de dados ou executar a consulta: {e}")
-        return None
 
 # Configuração da interface do Streamlit
+st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
+
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
-    st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
     st.title('📊 Painel da Classe e Gerador de Atividades')
     st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
 # Entradas principais do usuário
-def get_user_inputs():
+def get_user_inputs(data):
     """Captura as entradas de dados do usuário.
 
     Retorna:
     tuple: Contendo as credenciais da API, tema e nível de dificuldade.
     """
     st.sidebar.header("Configurações da Atividade")
-    turma = st.sidebar.selectbox("Escolha a turma:", ["1º ano", "2º ano"])
+    turmas = data['class_name'].unique()
+    turma = st.sidebar.selectbox("Escolha a turma:", turmas)
     componente = st.sidebar.selectbox("Escolha o componente:", ["Matemática", "Língua Portuguesa"])
     unidade_tematica = st.sidebar.selectbox("Escolha a unidade temática:", ["Leitura", "Escrita", "Produção de Texto"])
     objetivo_conhecimento = st.sidebar.text_input("Objetivo de conhecimento:")
     return turma, componente, unidade_tematica, objetivo_conhecimento
 
 # Função para buscar dados e mostrar informações da classe
-def display_class_data(data):
+def display_class_data(data, turma):
     if data is None:
         st.error("Erro ao carregar os dados da classe.")
         return
 
-    # Dados simulados para exemplo
-    teacher = {'name': 'Prof. Silva'}
-    school = {'name': 'Escola Futuro Brilhante'}
-    class_data = {'name': 'Turma A', 'year': '2023'}
+    # Filtrar dados pela turma selecionada
+    data = data[data['class_name'] == turma]
 
-    # Exibindo informações da classe
-    st.subheader("Informações da Classe")
-    st.write(f"**Professor(a):** {teacher['name']}")
-    st.write(f"**Escola:** {school['name']}")
-    st.write(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
+    # Verificar se todas as colunas necessárias estão presentes
+    required_columns = ['student_name', 'class_name', 'month', 'hypothesis_name']
+    if not all(column in data.columns for column in required_columns):
+        st.error(f"O arquivo CSV deve conter as seguintes colunas: {', '.join(required_columns)}")
+        return
 
-    current_month = datetime.datetime.now().strftime("%B de %Y")
-    st.write(f"**Data da Sondagem:** {current_month}")
-
-    # Filtrando alunos alfabetizados
-    alphabetizados = data[data['hypothesis_id'] == 1]
+    # Gráfico de pizza de alunos alfabetizados
+    st.subheader("Porcentagem de Alunos por Hipótese")
+    hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
+    labels = hypothesis_counts.index
+    sizes = hypothesis_counts.values
+    colors = ['#ff9999', '#ffcc99', '#99ff99']  # Cores específicas para cada hipótese
+    fig1, ax1 = plt.subplots(figsize=(6, 4))  # Ajuste o tamanho do gráfico de pizza
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig1)
 
     # Exibindo tabela de alunos alfabetizados
     st.subheader('Tabela de Alunos Alfabetizados')
-    st.dataframe(alphabetizados)
+    styled_data = data[['student_name', 'class_name', 'hypothesis_name']].style.applymap(
+        lambda x: 'background-color: #ff9999' if x == 'Hipótese Inicial' else 'background-color: #ffcc99' if x == 'Hipótese Intermediária' else 'background-color: #99ff99',
+        subset=['hypothesis_name']
+    )
+    st.dataframe(styled_data, width=1000)  # Aumenta a largura da tabela
 
-    # Contagem de alunos alfabetizados por classe
-    st.subheader('Número de Alunos Alfabetizados por Classe')
-    count_per_class = alphabetizados['class_id'].value_counts().reset_index()
-    count_per_class.columns = ['Class ID', 'Number of Literate Students']
-    st.bar_chart(count_per_class.set_index('Class ID'))
-
-    # Gráfico de pizza de alunos alfabetizados
-    st.subheader("Porcentagem de Alunos Alfabetizados")
-    total_students = len(data)
-    total_alphabetizados = len(alphabetizados)
-    labels = ['Alfabetizados', 'Não Alfabetizados']
-    sizes = [total_alphabetizados, total_students - total_alphabetizados]
-    colors = ['#ff9999','#66b3ff']
-    fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, labels=labels, autopct='%1.1%%', startangle=90, colors=colors)
-    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    st.pyplot(fig1)
+# Função para analisar os dados da turma e fornecer dicas
+def analyze_class_data(data):
+    # Simulação de análise da IA da Llama
+    tips = [
+        "📈 **Dica 1:** Concentre-se em atividades de leitura para alunos na Hipótese Inicial.",
+        "📝 **Dica 2:** Incentive a escrita criativa para alunos na Hipótese Intermediária.",
+        "📚 **Dica 3:** Desafie os alunos na Hipótese Avançada com textos mais complexos."
+    ]
+    return tips
 
 # Função principal para lidar com a lógica do aplicativo
 def main():
     configure_ui()
-    turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs()
 
-    # Carregar as credenciais do arquivo secrets.toml
+    # Carregar os dados do CSV
     try:
-        api_token = st.secrets["api"]["api_token"]
-        groq_api_key = st.secrets["api"]["groq_api_key"]
-        st.write("Credenciais da API carregadas com sucesso.")
-    except KeyError as e:
-        st.error(f"Erro ao carregar as credenciais da API: {e}")
+        data = pd.read_csv('dados.csv')
+        st.write("Dados carregados com sucesso.")
+    except Exception as e:
+        st.error(f"Erro ao carregar os dados do CSV: {e}")
         return
 
-    # Verificar se as credenciais foram carregadas corretamente
-    if not api_token or not groq_api_key:
-        st.error("As credenciais da API não foram carregadas corretamente.")
-        return
+    turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
-    # Carregar os dados do banco de dados
-    data = load_data()
+    # Dados simulados para exemplo
+    teacher = {'name': 'Prof. Silva'}
+    school = {'name': 'Escola Futuro Brilhante'}
+    class_data = {'name': turma, 'year': '2023'}
+
+    # Exibindo informações da professora, escola e turma no topo da página
+    st.markdown(f"### Olá, Professora {teacher['name']}!")
+    st.markdown(f"**Escola:** {school['name']}")
+    st.markdown(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
+
+    current_month = datetime.datetime.now().strftime("%B de %Y")
+    st.write(f"**Data da Sondagem:** {current_month}")
+
+    # Resumo estratégico dos resultados das hipóteses em porcentagem
+    st.subheader("Resumo Estratégico")
+    hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
+    for hypothesis, percentage in hypothesis_counts.items():
+        st.write(f"- **{hypothesis}:** {percentage:.1f}%")
+
+    # Análise da IA da Llama
+    st.subheader("📊 Análise da IA da Llama")
+    tips = analyze_class_data(data)
+    for tip in tips:
+        st.write(tip)
 
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 
     with tabs[0]:
-        display_class_data(data)
+        display_class_data(data, turma)
 
     with tabs[1]:
         if st.button("Gerar Atividade"):
-            if api_token and groq_api_key:
+            try:
+                api_token = st.secrets["api"]["api_token"]
+                groq_api_key = st.secrets["api"]["groq_api_key"]
                 st.info("🚀 Gerando a atividade, por favor, aguarde...")
                 try:
                     # Ajuste a chamada para a função generate_activity_with_rag
@@ -192,8 +143,10 @@ def main():
                         st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
                 except Exception as e:
                     st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
-            else:
-                st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
+            except KeyError as e:
+                st.error(f"Erro ao carregar as credenciais da API: {e}")
+            except Exception as e:
+                st.error(f"Erro ao gerar a atividade: {e}")
 
 if __name__ == "__main__":
     main()

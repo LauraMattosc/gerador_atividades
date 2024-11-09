@@ -1,13 +1,22 @@
+import os
 import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
 from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 
-# Função para carregar os dados do CSV
+# Função para carregar os dados do banco de dados
 def load_data():
-    file_path = 'datasets - diagnostic_assessment.csv'  # Substitua pelo caminho real do seu arquivo
-    data = pd.read_csv(file_path)
+    user = os.getenv('DB_USER')
+    password = os.getenv('DB_PASSWORD')
+    host = os.getenv('DB_HOST')
+    database = os.getenv('DB_NAME')
+    connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
+    engine = create_engine(connection_string)
+    
+    query = "SELECT * FROM diagnostic_assessment"  # Substitua pela sua consulta SQL
+    data = pd.read_sql(query, engine)
     return data
 
 # Configuração da interface do Streamlit
@@ -90,7 +99,7 @@ def main():
         st.error("As credenciais da API não foram carregadas corretamente.")
         return
 
-    # Carregar os dados do CSV
+    # Carregar os dados do banco de dados
     data = load_data()
 
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])

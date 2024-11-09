@@ -5,3 +5,5 @@ groq
 pandas
 datetime
 matplotlib
+sqlalchemy
+pymysql

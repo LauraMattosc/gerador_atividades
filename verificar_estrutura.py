@@ -23,7 +23,9 @@ def verificar_dependencias():
         'matplotlib',
         'requests',
         'groq',
-        'altair'
+        'altair',
+        'sqlalchemy',
+        'pymysql'
     ]
 
     todas_instaladas = True
@@ -48,10 +50,15 @@ def verificar_secrets():
         with open(secrets_path, 'r') as f:
             secrets = toml.load(f)
         if 'api' in secrets and 'api_token' in secrets['api'] and 'groq_api_key' in secrets['api']:
-            print("✅ Credenciais encontradas no arquivo secrets.toml.")
+            print("✅ Credenciais da API encontradas no arquivo secrets.toml.")
+        else:
+            print("❌ Credenciais da API não encontradas ou incompletas no arquivo secrets.toml.")
+            return False
+        if 'database' in secrets and 'DB_USER' in secrets['database'] and 'DB_PASSWORD' in secrets['database'] and 'DB_HOST' in secrets['database'] and 'DB_NAME' in secrets['database']:
+            print("✅ Credenciais do banco de dados encontradas no arquivo secrets.toml.")
             return True
         else:
-            print("❌ Credenciais não encontradas ou incompletas no arquivo secrets.toml.")
+            print("❌ Credenciais do banco de dados não encontradas ou incompletas no arquivo secrets.toml.")
             return False
     except Exception as e:
         print(f"❌ Erro ao ler o arquivo secrets.toml: {e}")

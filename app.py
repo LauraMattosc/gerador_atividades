@@ -75,6 +75,7 @@ def display_class_data(data, turma):
 
     st.pyplot(fig1)
 
+
     # Exibindo tabela de alunos com cores padronizadas
     st.subheader('Tabela de Alunos por Hipótese')
     color_map = {

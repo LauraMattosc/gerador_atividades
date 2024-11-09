@@ -48,6 +48,7 @@ def display_class_data():
 
     st.subheader("Resumo das Hipóteses")
     grouped_hypotheses = students.groupby('hypothesis').size().reset_index(name='Quantidade de Alunos')
+    grouped_hypotheses['Porcentagem'] = (grouped_hypotheses['Quantidade de Alunos'] / grouped_hypotheses['Quantidade de Alunos'].sum()) * 100
     st.table(grouped_hypotheses)
 
     # Gráfico de barras das hipóteses
@@ -57,6 +58,13 @@ def display_class_data():
     ax.set_xlabel('Hipótese')
     ax.set_ylabel('Quantidade de Alunos')
     ax.set_title('Distribuição das Hipóteses dos Alunos')
+    st.pyplot(fig)
+
+    # Gráfico de porcentagem das hipóteses
+    st.subheader("Porcentagem das Hipóteses")
+    fig, ax = plt.subplots()
+    ax.pie(grouped_hypotheses['Porcentagem'], labels=grouped_hypotheses['hypothesis'], autopct='%1.1f%%', startangle=90, colors=['#ff9999','#66b3ff','#99ff99','#ffcc99'])
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     st.pyplot(fig)
 
     st.subheader("Lista de Alunos")

@@ -73,34 +73,39 @@ def display_class_data():
 # Função principal para lidar com a lógica do aplicativo
 def main():
     configure_ui()
-    display_class_data()
     api_token, groq_api_key, tema, nivel_dificuldade = get_user_inputs()
 
-    if st.sidebar.button("Gerar Atividade"):
-        if api_token and groq_api_key:
-            st.info("🚀 Gerando a atividade, por favor, aguarde...")
-            atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 
-            if atividade_texto:
-                st.success("✅ Requisição à API principal bem-sucedida.")
-                resposta_final = process_with_groq(groq_api_key, atividade_texto)
+    with tabs[0]:
+        display_class_data()
 
-                if resposta_final:
-                    st.markdown(
-                        f"""
-                        <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                        <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                        <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+    with tabs[1]:
+        if st.button("Gerar Atividade"):
+            if api_token and groq_api_key:
+                st.info("🚀 Gerando a atividade, por favor, aguarde...")
+                atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+
+                if atividade_texto:
+                    st.success("✅ Requisição à API principal bem-sucedida.")
+                    resposta_final = process_with_groq(groq_api_key, atividade_texto)
+
+                    if resposta_final:
+                        st.markdown(
+                            f"""
+                            <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                            <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
+                            <p style="font-size:16px; color:#264653;">{resposta_final}</p>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        st.error("❌ Erro ao processar a atividade com a API Groq.")
                 else:
-                    st.error("❌ Erro ao processar a atividade com a API Groq.")
+                    st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
             else:
-                st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
-        else:
-            st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
+                st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
 
 if __name__ == "__main__":
     main()

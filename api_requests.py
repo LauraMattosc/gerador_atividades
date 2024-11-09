@@ -24,6 +24,7 @@ def fetch_activity(api_token, tema, nivel_dificuldade):
 
     try:
         response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
+        print(f"Status Code: {response.status_code}")
         response.raise_for_status()
         fragmentos = response.json()
         return "".join([frag['text'] for frag in fragmentos])
@@ -94,6 +95,7 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
 
     try:
         response = requests.post(url, headers=headers, json=data)
+        print(f"Status Code: {response.status_code}")
         response.raise_for_status()
         return response.json().get("atividade_texto")
     except requests.exceptions.HTTPError as http_err:

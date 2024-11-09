@@ -9,6 +9,11 @@ from api_requests import fetch_activity, process_with_groq, generate_activity_wi
 # Função para carregar os dados do banco de dados
 def load_data():
     try:
+        # Verificar se a chave "database" está presente
+        if "database" not in st.secrets:
+            st.error("A chave 'database' não está presente em st.secrets.")
+            return None
+
         user = st.secrets["database"]["DB_USER"]
         password = st.secrets["database"]["DB_PASSWORD"]
         host = st.secrets["database"]["DB_HOST"]

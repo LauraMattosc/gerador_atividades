@@ -14,16 +14,57 @@ def load_data():
         host = st.secrets["database"]["DB_HOST"]
         port = st.secrets["database"]["DB_PORT"]
         database = st.secrets["database"]["DB_NAME"]
+        st.write("Credenciais do banco de dados carregadas com sucesso.")
     except KeyError as e:
         st.error(f"Erro ao acessar as credenciais do banco de dados: {e}")
         return None
 
+    # Verificações adicionais das credenciais
+    if not user:
+        st.error("Usuário do banco de dados não fornecido.")
+        return None
+    if not password:
+        st.error("Senha do banco de dados não fornecida.")
+        return None
+    if not host:
+        st.error("Host do banco de dados não fornecido.")
+        return None
+    if not port:
+        st.error("Porta do banco de dados não fornecida.")
+        return None
+    if not database:
+        st.error("Nome do banco de dados não fornecido.")
+        return None
+
+    # Verificação do tipo de dados das credenciais
+    if not isinstance(user, str):
+        st.error("Usuário do banco de dados deve ser uma string.")
+        return None
+    if not isinstance(password, str):
+        st.error("Senha do banco de dados deve ser uma string.")
+        return None
+    if not isinstance(host, str):
+        st.error("Host do banco de dados deve ser uma string.")
+        return None
+    if not isinstance(port, int):
+        st.error("Porta do banco de dados deve ser um inteiro.")
+        return None
+    if not isinstance(database, str):
+        st.error("Nome do banco de dados deve ser uma string.")
+        return None
+
     connection_string = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
-    engine = create_engine(connection_string)
-    
-    query = "SELECT * FROM diagnostic_assessment"  # Substitua pela sua consulta SQL
-    data = pd.read_sql(query, engine)
-    return data
+    st.write(f"String de conexão: {connection_string}")
+
+    try:
+        engine = create_engine(connection_string)
+        query = "SELECT * FROM diagnostic_assessment"  # Substitua pela sua consulta SQL
+        data = pd.read_sql(query, engine)
+        st.write("Dados carregados com sucesso.")
+        return data
+    except Exception as e:
+        st.error(f"Erro ao conectar ao banco de dados ou executar a consulta: {e}")
+        return None
 
 # Configuração da interface do Streamlit
 def configure_ui():
@@ -100,6 +141,7 @@ def main():
     try:
         api_token = st.secrets["api"]["api_token"]
         groq_api_key = st.secrets["api"]["groq_api_key"]
+        st.write("Credenciais da API carregadas com sucesso.")
     except KeyError as e:
         st.error(f"Erro ao carregar as credenciais da API: {e}")
         return

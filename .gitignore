@@ -1,5 +1,5 @@
 *.pyc
 *.toml
-__pycache__
+__pycache__/
 .vscode/
 .streamlit/

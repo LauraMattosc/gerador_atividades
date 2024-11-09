@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
+from multimodality import *
 import toml
 
 # Configuração da interface do Streamlit
@@ -88,7 +89,7 @@ def main():
         st.error("As credenciais da API não foram carregadas corretamente.")
         return
 
-    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade","🖼️ Gerar Imagem"])
 
     with tabs[0]:
         display_class_data()
@@ -113,6 +114,12 @@ def main():
                                 """,
                                 unsafe_allow_html=True
                             )
+
+                            # salva o resultado em arquivo .txt para ser acessado 
+                            # no processo de geração de imagem
+                            with open("resposta_final.txt", "w") as file:
+                                file.write(resposta_final)
+
                         else:
                             st.error("❌ Erro ao processar a atividade com a API Groq.")
                     else:
@@ -122,5 +129,8 @@ def main():
             else:
                 st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
 
+    with tabs[2]:
+        create_image_ui()
+        
 if __name__ == "__main__":
     main()

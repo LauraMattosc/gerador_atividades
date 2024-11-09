@@ -8,11 +8,16 @@ from api_requests import fetch_activity, process_with_groq, generate_activity_wi
 
 # Função para carregar os dados do banco de dados
 def load_data():
-    user = st.secrets["database"]["DB_USER"]
-    password = st.secrets["database"]["DB_PASSWORD"]
-    host = st.secrets["database"]["DB_HOST"]
-    port = st.secrets["database"]["DB_PORT"]
-    database = st.secrets["database"]["DB_NAME"]
+    try:
+        user = st.secrets["database"]["DB_USER"]
+        password = st.secrets["database"]["DB_PASSWORD"]
+        host = st.secrets["database"]["DB_HOST"]
+        port = st.secrets["database"]["DB_PORT"]
+        database = st.secrets["database"]["DB_NAME"]
+    except KeyError as e:
+        st.error(f"Erro ao acessar as credenciais do banco de dados: {e}")
+        return None
+
     connection_string = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
     engine = create_engine(connection_string)
     
@@ -43,6 +48,10 @@ def get_user_inputs():
 
 # Função para buscar dados e mostrar informações da classe
 def display_class_data(data):
+    if data is None:
+        st.error("Erro ao carregar os dados da classe.")
+        return
+
     # Dados simulados para exemplo
     teacher = {'name': 'Prof. Silva'}
     school = {'name': 'Escola Futuro Brilhante'}
@@ -91,8 +100,8 @@ def main():
     try:
         api_token = st.secrets["api"]["api_token"]
         groq_api_key = st.secrets["api"]["groq_api_key"]
-    except Exception as e:
-        st.error(f"Erro ao carregar as credenciais: {e}")
+    except KeyError as e:
+        st.error(f"Erro ao carregar as credenciais da API: {e}")
         return
 
     # Verificar se as credenciais foram carregadas corretamente

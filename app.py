@@ -8,10 +8,10 @@ from api_requests import fetch_activity, process_with_groq, generate_activity_wi
 
 # Função para carregar os dados do banco de dados
 def load_data():
-    user = os.getenv('DB_USER')
-    password = os.getenv('DB_PASSWORD')
-    host = os.getenv('DB_HOST')
-    database = os.getenv('DB_NAME')
+    user = st.secrets["database"]["DB_USER"]
+    password = st.secrets["database"]["DB_PASSWORD"]
+    host = st.secrets["database"]["DB_HOST"]
+    database = st.secrets["database"]["DB_NAME"]
     connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
     engine = create_engine(connection_string)
     

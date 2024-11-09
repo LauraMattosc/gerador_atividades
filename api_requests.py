@@ -24,7 +24,6 @@ def fetch_activity(api_token, componente, unidade_tematica):
     response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
     if response.status_code in [200, 201]:
         fragmentos = response.json()
-        print("Status: Requisição bem-sucedida.")
         return "".join([frag['text'] for frag in fragmentos])
     else:
         print(f"Status: Erro na requisição. Código {response.status_code}")
@@ -58,19 +57,17 @@ def process_with_groq(groq_api_key, prompt):
         if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
             resposta_final += chunk.choices[0].delta.content
     if resposta_final:
-        print("Status: Resposta processada com sucesso.")
         return resposta_final
     else:
         print("Status: Falha ao processar a resposta.")
     return None
 
-def generate_activity_with_rag(api_token, componente, unidade_tematica):
+def generate_activity_with_rag(api_token, prompt):
     """Gera uma atividade usando a API RAG.
 
     Parâmetros:
     api_token (str): Token de autenticação da API principal.
-    componente (str): Componente da atividade a ser gerada.
-    unidade_tematica (str): Unidade temática da atividade.
+    prompt (str): Prompt gerado para a criação da atividade.
 
     Retorna:
     str: Texto da atividade gerada ou None se a requisição falhar.
@@ -81,14 +78,13 @@ def generate_activity_with_rag(api_token, componente, unidade_tematica):
         "Authorization": f"Bearer {api_token}"
     }
     data = {
-        "question": f"Crie uma atividade de {componente.lower()} na unidade temática de {unidade_tematica.lower()} para alunos de ensino fundamental."
+        "question": prompt
     }
 
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         resposta_json = response.json()
-        print(f"Resposta da API: {resposta_json}")
         if isinstance(resposta_json, list):
             return "".join([frag['text'] for frag in resposta_json])
         else:

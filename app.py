@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
+from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
+from prompt_dicas import generate_prompt_for_analysis
+from prompt_aula import generate_prompt_for_activity
 
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
@@ -9,7 +12,6 @@ st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
     st.title('📊 Painel da Classe e Gerador de Atividades')
-    st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
 # Entradas principais do usuário
 def get_user_inputs(data):
@@ -61,13 +63,11 @@ def display_class_data(data, turma):
     st.dataframe(styled_data, width=1000)  # Aumenta a largura da tabela
 
 # Função para analisar os dados da turma e fornecer dicas
-def analyze_class_data(data):
-    # Simulação de análise da IA da Llama
-    tips = [
-        "📈 **Dica 1:** Concentre-se em atividades de leitura para alunos na Hipótese Inicial.",
-        "📝 **Dica 2:** Incentive a escrita criativa para alunos na Hipótese Intermediária.",
-        "📚 **Dica 3:** Desafie os alunos na Hipótese Avançada com textos mais complexos."
-    ]
+def analyze_class_data(data, groq_api_key):
+    # Gerar o prompt para análise
+    prompt = generate_prompt_for_analysis(data)
+    # Processar o prompt com a API Groq
+    tips = process_with_groq(groq_api_key, prompt)
     return tips
 
 # Função principal para lidar com a lógica do aplicativo
@@ -77,7 +77,6 @@ def main():
     # Carregar os dados do CSV
     try:
         data = pd.read_csv('dados.csv')
-        st.write("Dados carregados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao carregar os dados do CSV: {e}")
         return
@@ -95,7 +94,6 @@ def main():
     st.markdown(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
 
     current_month = datetime.datetime.now().strftime("%B de %Y")
-    st.write(f"**Data da Sondagem:** {current_month}")
 
     # Resumo estratégico dos resultados das hipóteses em porcentagem
     st.subheader("Resumo Estratégico")
@@ -105,9 +103,23 @@ def main():
 
     # Análise da IA da Llama
     st.subheader("📊 Análise da IA da Llama")
-    tips = analyze_class_data(data)
-    for tip in tips:
-        st.write(tip)
+    try:
+        groq_api_key = st.secrets["api"]["groq_api_key"]
+        tips = analyze_class_data(data, groq_api_key)
+        if tips:
+            st.markdown(
+                f"""
+                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                <h3 style="color:#2a9d8f;">💡 Dicas da IA:</h3>
+                <p style="font-size:16px; color:#264653;">{tips}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            st.error("❌ Erro ao processar a análise com a API Groq.")
+    except Exception as e:
+        st.error(f"Erro ao analisar os dados com a IA da Llama: {e}")
 
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 
@@ -118,11 +130,10 @@ def main():
         if st.button("Gerar Atividade"):
             try:
                 api_token = st.secrets["api"]["api_token"]
-                groq_api_key = st.secrets["api"]["groq_api_key"]
                 st.info("🚀 Gerando a atividade, por favor, aguarde...")
                 try:
-                    # Ajuste a chamada para a função generate_activity_with_rag
-                    atividade_texto = generate_activity_with_rag(api_token, componente, unidade_tematica)
+                    prompt = generate_prompt_for_activity(componente, unidade_tematica)
+                    atividade_texto = generate_activity_with_rag(api_token, prompt)
                     if atividade_texto:
                         st.success("✅ Requisição à API principal bem-sucedida.")
                         resposta_final = process_with_groq(groq_api_key, atividade_texto)

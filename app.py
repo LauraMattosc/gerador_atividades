@@ -84,9 +84,9 @@ def main():
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
     # Dados simulados para exemplo
-    teacher = {'name': 'Prof. Silva'}
+    teacher = {'name': 'Professora. Patrícia'}
     school = {'name': 'Escola Futuro Brilhante'}
-    class_data = {'name': turma, 'year': '2023'}
+    class_data = {'name': turma, 'year': '2024'}
 
     # Exibindo informações da professora, escola e turma no topo da página
     st.markdown(f"### Olá, Professora {teacher['name']}!")

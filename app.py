@@ -4,6 +4,12 @@ import datetime
 import matplotlib.pyplot as plt
 from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 
+# Função para carregar os dados do CSV
+def load_data():
+    file_path = '/mnt/data/datasets - diagnostic_assessment.csv'  # Substitua pelo caminho real do seu arquivo
+    data = pd.read_csv(file_path)
+    return data
+
 # Configuração da interface do Streamlit
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
@@ -25,17 +31,12 @@ def get_user_inputs():
     objetivo_conhecimento = st.sidebar.text_input("Objetivo de conhecimento:")
     return turma, componente, unidade_tematica, objetivo_conhecimento
 
-# Função para buscar dados e mostrar informações da classe (mock)
-def display_class_data():
+# Função para buscar dados e mostrar informações da classe
+def display_class_data(data):
     # Dados simulados para exemplo
     teacher = {'name': 'Prof. Silva'}
     school = {'name': 'Escola Futuro Brilhante'}
     class_data = {'name': 'Turma A', 'year': '2023'}
-    students = pd.DataFrame({
-        'name': ['Alice', 'Bruno', 'Carla', 'Daniel'],
-        'hypothesis': ['A', 'B', 'A', 'C'],
-        'comment': ['Progresso excelente', None, 'Precisa de mais apoio', 'Esforço consistente']
-    })
 
     # Exibindo informações da classe
     st.subheader("Informações da Classe")
@@ -46,37 +47,30 @@ def display_class_data():
     current_month = datetime.datetime.now().strftime("%B de %Y")
     st.write(f"**Data da Sondagem:** {current_month}")
 
-    st.subheader("Resumo das Hipóteses")
-    grouped_hypotheses = students.groupby('hypothesis').size().reset_index(name='Quantidade de Alunos')
-    grouped_hypotheses['Porcentagem'] = (grouped_hypotheses['Quantidade de Alunos'] / grouped_hypotheses['Quantidade de Alunos'].sum()) * 100
-    st.table(grouped_hypotheses)
+    # Filtrando alunos alfabetizados
+    alphabetizados = data[data['hypothesis_id'] == 1]
 
-    # Gráfico de barras das hipóteses
-    st.subheader("Distribuição das Hipóteses")
-    fig, ax = plt.subplots()
-    ax.bar(grouped_hypotheses['hypothesis'], grouped_hypotheses['Quantidade de Alunos'], color='skyblue')
-    ax.set_xlabel('Hipótese')
-    ax.set_ylabel('Quantidade de Alunos')
-    ax.set_title('Distribuição das Hipóteses dos Alunos')
-    st.pyplot(fig)
+    # Exibindo tabela de alunos alfabetizados
+    st.subheader('Tabela de Alunos Alfabetizados')
+    st.dataframe(alphabetizados)
 
-    # Gráfico de porcentagem das hipóteses
-    st.subheader("Porcentagem das Hipóteses")
-    fig, ax = plt.subplots()
-    ax.pie(grouped_hypotheses['Porcentagem'], labels=grouped_hypotheses['hypothesis'], autopct='%1.1f%%', startangle=90, colors=['#ff9999','#66b3ff','#99ff99','#ffcc99'])
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    st.pyplot(fig)
+    # Contagem de alunos alfabetizados por classe
+    st.subheader('Número de Alunos Alfabetizados por Classe')
+    count_per_class = alphabetizados['class_id'].value_counts().reset_index()
+    count_per_class.columns = ['Class ID', 'Number of Literate Students']
+    st.bar_chart(count_per_class.set_index('Class ID'))
 
-    st.subheader("Lista de Alunos")
-    for _, row in students.iterrows():
-        st.write(f"**Nome:** {row['name']}")
-        st.markdown(
-            f"<div style='background-color: #E3E4E5; padding: 5px; border-radius: 5px; display: inline-block;'>{row['hypothesis']}</div>",
-            unsafe_allow_html=True
-        )
-        if row['comment']:
-            with st.expander("Ver Comentário"):
-                st.write(f"{row['comment']}")
+    # Gráfico de pizza de alunos alfabetizados
+    st.subheader("Porcentagem de Alunos Alfabetizados")
+    total_students = len(data)
+    total_alphabetizados = len(alphabetizados)
+    labels = ['Alfabetizados', 'Não Alfabetizados']
+    sizes = [total_alphabetizados, total_students - total_alphabetizados]
+    colors = ['#ff9999','#66b3ff']
+    fig1, ax1 = plt.subplots()
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    st.pyplot(fig1)
 
 # Função principal para lidar com a lógica do aplicativo
 def main():
@@ -96,10 +90,13 @@ def main():
         st.error("As credenciais da API não foram carregadas corretamente.")
         return
 
+    # Carregar os dados do CSV
+    data = load_data()
+
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 
     with tabs[0]:
-        display_class_data()
+        display_class_data(data)
 
     with tabs[1]:
         if st.button("Gerar Atividade"):

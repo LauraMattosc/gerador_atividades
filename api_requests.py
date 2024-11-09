@@ -85,7 +85,7 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
     Retorna:
     str: Texto da atividade gerada ou None se a requisição falhar.
     """
-    url = "https://ragne.codebit.dev/rag/generate-activity"
+    url = "https://ragne.codebit.dev/rag/text-fragments"
     headers = {"Authorization": f"Bearer {api_token}"}
     data = {"tema": tema, "nivel_dificuldade": nivel_dificuldade}
 

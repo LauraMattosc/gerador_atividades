@@ -1,103 +1,124 @@
-import requests
-import json
-from groq import Groq
+import streamlit as st
+import pandas as pd
+import datetime
+import matplotlib.pyplot as plt
+from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 
-def fetch_activity(api_token, tema, nivel_dificuldade):
-    """Faz uma requisição à API principal para obter a atividade.
+# Configuração da interface do Streamlit
+def configure_ui():
+    """Configura a interface do usuário usando o Streamlit."""
+    st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
+    st.title('📊 Painel da Classe e Gerador de Atividades')
+    st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
-
-    Retorna:
-    str: Texto concatenado dos fragmentos da atividade ou None se a requisição falhar.
-    """
-    url_fragments = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-    payload_atividade = {
-        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
-    }
-
-    try:
-        response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
-        response.raise_for_status()
-        fragmentos = response.json()
-        return "".join([frag['text'] for frag in fragmentos])
-    except requests.exceptions.HTTPError as http_err:
-        raise Exception(f"HTTP error occurred: {http_err}")
-    except requests.exceptions.ConnectionError as conn_err:
-        raise Exception(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        raise Exception(f"Timeout error occurred: {timeout_err}")
-    except requests.exceptions.RequestException as req_err:
-        raise Exception(f"An error occurred: {req_err}")
-
-def process_with_groq(groq_api_key, prompt):
-    """Processa o texto com a API Groq para gerar uma atividade detalhada.
-
-    Parâmetros:
-    groq_api_key (str): Chave de API para autenticação com a API Groq.
-    prompt (str): Prompt de texto para ser processado pela API.
+# Entradas principais do usuário
+def get_user_inputs():
+    """Captura as entradas de dados do usuário.
 
     Retorna:
-    str: Resposta gerada pela API ou None se falhar.
+    tuple: Contendo as credenciais da API, tema e nível de dificuldade.
     """
-    client = Groq(api_key=groq_api_key)
+    st.sidebar.header("Configurações da Atividade")
+    tema = st.sidebar.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
+    nivel_dificuldade = st.sidebar.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
+    return tema, nivel_dificuldade
 
-    try:
-        completion = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[{
-                "role": "user",
-                "content": prompt
-            }],
-            temperature=0.7,
-            max_tokens=1500,
-            top_p=1,
-            stream=True,
-            stop=None
+# Função para buscar dados e mostrar informações da classe (mock)
+def display_class_data():
+    # Dados simulados para exemplo
+    teacher = {'name': 'Prof. Silva'}
+    school = {'name': 'Escola Futuro Brilhante'}
+    class_data = {'name': 'Turma A', 'year': '2023'}
+    students = pd.DataFrame({
+        'name': ['Alice', 'Bruno', 'Carla', 'Daniel'],
+        'hypothesis': ['A', 'B', 'A', 'C'],
+        'comment': ['Progresso excelente', None, 'Precisa de mais apoio', 'Esforço consistente']
+    })
+
+    # Exibindo informações da classe
+    st.subheader("Informações da Classe")
+    st.write(f"**Professor(a):** {teacher['name']}")
+    st.write(f"**Escola:** {school['name']}")
+    st.write(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
+
+    current_month = datetime.datetime.now().strftime("%B de %Y")
+    st.write(f"**Data da Sondagem:** {current_month}")
+
+    st.subheader("Resumo das Hipóteses")
+    grouped_hypotheses = students.groupby('hypothesis').size().reset_index(name='Quantidade de Alunos')
+    st.table(grouped_hypotheses)
+
+    # Gráfico de barras das hipóteses
+    st.subheader("Distribuição das Hipóteses")
+    fig, ax = plt.subplots()
+    ax.bar(grouped_hypotheses['hypothesis'], grouped_hypotheses['Quantidade de Alunos'], color='skyblue')
+    ax.set_xlabel('Hipótese')
+    ax.set_ylabel('Quantidade de Alunos')
+    ax.set_title('Distribuição das Hipóteses dos Alunos')
+    st.pyplot(fig)
+
+    st.subheader("Lista de Alunos")
+    for _, row in students.iterrows():
+        st.write(f"**Nome:** {row['name']}")
+        st.markdown(
+            f"<div style='background-color: #E3E4E5; padding: 5px; border-radius: 5px; display: inline-block;'>{row['hypothesis']}</div>",
+            unsafe_allow_html=True
         )
+        if row['comment']:
+            with st.expander("Ver Comentário"):
+                st.write(f"{row['comment']}")
 
-        resposta_final = ""
-        for chunk in completion:
-            if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
-                resposta_final += chunk.choices[0].delta.content
+# Função principal para lidar com a lógica do aplicativo
+def main():
+    configure_ui()
+    tema, nivel_dificuldade = get_user_inputs()
 
-        if resposta_final:
-            return resposta_final
-        else:
-            raise Exception("Falha ao processar a resposta.")
-    except Exception as e:
-        raise Exception(f"Erro ao processar com Groq: {e}")
-
-def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
-    """Gera uma atividade usando a API RAG.
-
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
-
-    Retorna:
-    str: Texto da atividade gerada ou None se a requisição falhar.
-    """
-    url = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {"Authorization": f"Bearer {api_token}"}
-    data = {"tema": tema, "nivel_dificuldade": nivel_dificuldade}
-
+    # Carregar as credenciais do arquivo secrets.toml
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json().get("atividade_texto")
-    except requests.exceptions.HTTPError as http_err:
-        raise Exception(f"HTTP error occurred: {http_err}")
-    except requests.exceptions.ConnectionError as conn_err:
-        raise Exception(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        raise Exception(f"Timeout error occurred: {timeout_err}")
-    except requests.exceptions.RequestException as req_err:
-        raise Exception(f"An error occurred: {req_err}")
+        api_token = st.secrets["api"]["api_token"]
+        groq_api_key = st.secrets["api"]["groq_api_key"]
+    except Exception as e:
+        st.error(f"Erro ao carregar as credenciais: {e}")
+        return
+
+    # Verificar se as credenciais foram carregadas corretamente
+    if not api_token or not groq_api_key:
+        st.error("As credenciais da API não foram carregadas corretamente.")
+        return
+
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
+
+    with tabs[0]:
+        display_class_data()
+
+    with tabs[1]:
+        if st.button("Gerar Atividade"):
+            if api_token and groq_api_key:
+                st.info("🚀 Gerando a atividade, por favor, aguarde...")
+                try:
+                    atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
+                    if atividade_texto:
+                        st.success("✅ Requisição à API principal bem-sucedida.")
+                        resposta_final = process_with_groq(groq_api_key, atividade_texto)
+
+                        if resposta_final:
+                            st.markdown(
+                                f"""
+                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
+                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.error("❌ Erro ao processar a atividade com a API Groq.")
+                    else:
+                        st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                except Exception as e:
+                    st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
+            else:
+                st.warning("⚠️ Por favor, insira as credenciais da API para continuar.")
+
+if __name__ == "__main__":
+    main()

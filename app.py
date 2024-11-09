@@ -19,12 +19,12 @@ def get_user_inputs():
     tuple: Contendo as credenciais da API, tema e nível de dificuldade.
     """
     st.sidebar.header("Configurações da Atividade")
-    turma = st.sidebar.selectbox("📚 Escolha a turma:", ["1º ano", "2º ano"])
-    componente = st.sidebar.selectbox("📚 Escolha o componente:", ["Matemática", "Língua Portuguesa"])
-    unidade_tematica = st.sidebar.selectbox("📚 Escolha a unidade temática:", ["Leitura", "Escrita", "Produção de Texto"])
-    objetivo_conhecimento = st.sidebar.text_input("🎯 Objetivo de conhecimento:")
-    tema = st.sidebar.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
-    nivel_dificuldade = st.sidebar.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
+    turma = st.sidebar.selectbox("Escolha a turma:", ["1º ano", "2º ano"])
+    componente = st.sidebar.selectbox("Escolha o componente:", ["Matemática", "Língua Portuguesa"])
+    unidade_tematica = st.sidebar.selectbox("Escolha a unidade temática:", ["Leitura", "Escrita", "Produção de Texto"])
+    objetivo_conhecimento = st.sidebar.text_input("Objetivo de conhecimento:")
+    tema = st.sidebar.selectbox("Tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
+    nivel_dificuldade = st.sidebar.selectbox("Nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
     return turma, componente, unidade_tematica, objetivo_conhecimento, tema, nivel_dificuldade
 
 # Função para buscar dados e mostrar informações da classe (mock)

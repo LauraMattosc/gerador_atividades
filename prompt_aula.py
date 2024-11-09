@@ -1,12 +1,13 @@
 def generate_prompt_for_activity(componente, unidade_tematica):
-    """Gera um prompt para a criação de uma atividade.
+    """Retorna um prompt formatado para a criação de uma sequência de aulas personalizadas para alfabetização."""
+    
+    prompt = f"""
+    Plano de aula: {componente}, 2º ano, {unidade_tematica}, 30 minutos.
 
-    Parâmetros:
-    componente (str): Componente da atividade a ser gerada.
-    unidade_tematica (str): Unidade temática da atividade.
-
-    Retorna:
-    str: Prompt gerado para a criação da atividade.
+    1. Objetivo
+    2. Materiais
+    3. Etapas
+    4. Avaliação
     """
-    prompt = f"Crie uma atividade de {componente.lower()} na unidade temática de {unidade_tematica.lower()} para alunos de ensino fundamental."
+
     return prompt

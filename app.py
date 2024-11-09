@@ -12,6 +12,7 @@ st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout
 def configure_ui():
     """Configura a interface do usuário usando o Streamlit."""
     st.title('📊 Painel da Classe e Gerador de Atividades')
+    st.write('Este aplicativo combina a visualização de dados da classe com a geração de atividades práticas e envolventes.')
 
 # Entradas principais do usuário
 def get_user_inputs(data):
@@ -77,6 +78,7 @@ def main():
     # Carregar os dados do CSV
     try:
         data = pd.read_csv('dados.csv')
+        st.write("Dados carregados com sucesso.")
     except Exception as e:
         st.error(f"Erro ao carregar os dados do CSV: {e}")
         return
@@ -84,9 +86,9 @@ def main():
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
     # Dados simulados para exemplo
-    teacher = {'name': 'Professora. Patrícia'}
+    teacher = {'name': 'Prof. Silva'}
     school = {'name': 'Escola Futuro Brilhante'}
-    class_data = {'name': turma, 'year': '2024'}
+    class_data = {'name': turma, 'year': '2023'}
 
     # Exibindo informações da professora, escola e turma no topo da página
     st.markdown(f"### Olá, Professora {teacher['name']}!")
@@ -94,6 +96,7 @@ def main():
     st.markdown(f"**Turma e Ano:** {class_data['name']} - {class_data['year']}")
 
     current_month = datetime.datetime.now().strftime("%B de %Y")
+    st.write(f"**Data da Sondagem:** {current_month}")
 
     # Resumo estratégico dos resultados das hipóteses em porcentagem
     st.subheader("Resumo Estratégico")

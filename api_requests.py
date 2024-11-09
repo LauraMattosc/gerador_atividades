@@ -30,37 +30,42 @@ def fetch_activity(api_token, componente, unidade_tematica):
     return None
 
 def process_with_groq(groq_api_key, prompt):
-    """Processa o texto com a API Groq para gerar uma atividade detalhada.
+    """Processa o texto com a API Groq para gerar uma atividade detalhada."""
+    try:
+        client = Groq(api_key=groq_api_key)
+        print(f"Iniciando requisição Groq com prompt de tamanho: {len(prompt)}")  # Log do tamanho do prompt
+        
+        completion = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{
+                "role": "user",
+                "content": prompt
+            }],
+            temperature=0.7,
+            max_tokens=1500,
+            top_p=1,
+            stream=True,
+            stop=None
+        )
+        
+        resposta_final = ""
+        for chunk in completion:
+            if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
+                resposta_final += chunk.choices[0].delta.content
+                
+        print(f"Tamanho da resposta gerada: {len(resposta_final)}")  # Log do tamanho da resposta
+        
+        if resposta_final:
+            return resposta_final
+        else:
+            print("Status: Falha ao processar a resposta.")
+            
+    except Exception as e:
+        print(f"Erro detalhado na API Groq: {str(e)}")  # Log detalhado do erro
+        return None
 
-    Parâmetros:
-    groq_api_key (str): Chave de API para autenticação com a API Groq.
-    prompt (str): Prompt de texto para ser processado pela API.
-
-    Retorna:
-    str: Resposta gerada pela API ou None se falhar.
-    """
-    client = Groq(api_key=groq_api_key)
-    completion = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[{
-            "role": "user",
-            "content": prompt
-        }],
-        temperature=0.7,
-        max_tokens=1500,
-        top_p=1,
-        stream=True,
-        stop=None
-    )
-    resposta_final = ""
-    for chunk in completion:
-        if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
-            resposta_final += chunk.choices[0].delta.content
-    if resposta_final:
-        return resposta_final
-    else:
-        print("Status: Falha ao processar a resposta.")
     return None
+
 
 def generate_activity_with_rag(api_token, prompt):
     """Gera uma atividade usando a API RAG.

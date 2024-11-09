@@ -12,6 +12,7 @@ def load_data():
         # Verificar se a chave "database" está presente
         if "database" not in st.secrets:
             st.error("A chave 'database' não está presente em st.secrets.")
+            st.write("Chaves disponíveis em st.secrets:", list(st.secrets.keys()))
             return None
 
         user = st.secrets["database"]["DB_USER"]
@@ -133,7 +134,7 @@ def display_class_data(data):
     sizes = [total_alphabetizados, total_students - total_alphabetizados]
     colors = ['#ff9999','#66b3ff']
     fig1, ax1 = plt.subplots()
-    ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+    ax1.pie(sizes, labels=labels, autopct='%1.1%%', startangle=90, colors=colors)
     ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     st.pyplot(fig1)
 

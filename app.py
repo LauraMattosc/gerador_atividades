@@ -19,11 +19,9 @@ def get_user_inputs():
     tuple: Contendo as credenciais da API, tema e nível de dificuldade.
     """
     st.sidebar.header("Configurações da Atividade")
-    api_token = st.sidebar.text_input("🔑 Insira seu token de autenticação da API principal:", type="password")
-    groq_api_key = st.sidebar.text_input("🔐 Insira sua chave API do Groq:", type="password")
     tema = st.sidebar.selectbox("📚 Escolha o tema da atividade:", ["Histórias Curtas", "Completar Palavras", "Sílabas", "Rimas", "Leitura de Palavras"])
     nivel_dificuldade = st.sidebar.selectbox("🎚️ Selecione o nível de dificuldade:", ["Fácil", "Médio", "Difícil"]) 
-    return api_token, groq_api_key, tema, nivel_dificuldade
+    return tema, nivel_dificuldade
 
 # Função para buscar dados e mostrar informações da classe (mock)
 def display_class_data():
@@ -73,7 +71,11 @@ def display_class_data():
 # Função principal para lidar com a lógica do aplicativo
 def main():
     configure_ui()
-    api_token, groq_api_key, tema, nivel_dificuldade = get_user_inputs()
+    tema, nivel_dificuldade = get_user_inputs()
+
+    # Carregar as credenciais do arquivo secrets.toml
+    api_token = st.secrets["api"]["api_token"]
+    groq_api_key = st.secrets["api"]["groq_api_key"]
 
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 

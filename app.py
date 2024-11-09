@@ -11,8 +11,9 @@ def load_data():
     user = st.secrets["database"]["DB_USER"]
     password = st.secrets["database"]["DB_PASSWORD"]
     host = st.secrets["database"]["DB_HOST"]
+    port = st.secrets["database"]["DB_PORT"]
     database = st.secrets["database"]["DB_NAME"]
-    connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
+    connection_string = f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}'
     engine = create_engine(connection_string)
     
     query = "SELECT * FROM diagnostic_assessment"  # Substitua pela sua consulta SQL

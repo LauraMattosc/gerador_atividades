@@ -2,13 +2,13 @@ import requests
 import json
 from groq import Groq
 
-def fetch_activity(api_token, tema, nivel_dificuldade):
+def fetch_activity(api_token, componente, unidade_tematica):
     """Faz uma requisição à API principal para obter a atividade.
 
     Parâmetros:
     api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
+    componente (str): Componente da atividade a ser gerada.
+    unidade_tematica (str): Unidade temática da atividade.
 
     Retorna:
     str: Texto concatenado dos fragmentos da atividade ou None se a requisição falhar.
@@ -19,7 +19,7 @@ def fetch_activity(api_token, tema, nivel_dificuldade):
         "Authorization": f"Bearer {api_token}"
     }
     payload_atividade = {
-        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
+        "question": f"Crie uma atividade de {componente.lower()} na unidade temática de {unidade_tematica.lower()} para alunos de ensino fundamental."
     }
     response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
     if response.status_code in [200, 201]:
@@ -64,13 +64,13 @@ def process_with_groq(groq_api_key, prompt):
         print("Status: Falha ao processar a resposta.")
     return None
 
-def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
+def generate_activity_with_rag(api_token, componente, unidade_tematica):
     """Gera uma atividade usando a API RAG.
 
     Parâmetros:
     api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
+    componente (str): Componente da atividade a ser gerada.
+    unidade_tematica (str): Unidade temática da atividade.
 
     Retorna:
     str: Texto da atividade gerada ou None se a requisição falhar.
@@ -81,7 +81,7 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
         "Authorization": f"Bearer {api_token}"
     }
     data = {
-        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
+        "question": f"Crie uma atividade de {componente.lower()} na unidade temática de {unidade_tematica.lower()} para alunos de ensino fundamental."
     }
 
     try:

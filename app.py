@@ -74,8 +74,17 @@ def main():
     tema, nivel_dificuldade = get_user_inputs()
 
     # Carregar as credenciais do arquivo secrets.toml
-    api_token = st.secrets["api"]["api_token"]
-    groq_api_key = st.secrets["api"]["groq_api_key"]
+    try:
+        api_token = st.secrets["api"]["api_token"]
+        groq_api_key = st.secrets["api"]["groq_api_key"]
+    except Exception as e:
+        st.error(f"Erro ao carregar as credenciais: {e}")
+        return
+
+    # Verificar se as credenciais foram carregadas corretamente
+    if not api_token or not groq_api_key:
+        st.error("As credenciais da API não foram carregadas corretamente.")
+        return
 
     tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
 

@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
+import toml
 
 # Configuração da interface do Streamlit
 def configure_ui():
@@ -75,8 +76,9 @@ def main():
 
     # Carregar as credenciais do arquivo secrets.toml
     try:
-        api_token = st.secrets["api"]["api_token"]
-        groq_api_key = st.secrets["api"]["groq_api_key"]
+        config = toml.load('credentials.toml')
+        api_token = config.get("api_token", "Not found")
+        groq_api_key = config.get("groq_api_key", "Not found")
     except Exception as e:
         st.error(f"Erro ao carregar as credenciais: {e}")
         return

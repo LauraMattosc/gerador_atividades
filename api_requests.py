@@ -96,6 +96,7 @@ def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
     try:
         response = requests.post(url, headers=headers, json=data)
         print(f"Status Code: {response.status_code}")
+        print(f"Response Text: {response.text}")
         response.raise_for_status()
         return response.json().get("atividade_texto")
     except requests.exceptions.HTTPError as http_err:

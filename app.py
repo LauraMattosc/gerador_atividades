@@ -6,7 +6,7 @@ from api_requests import fetch_activity, process_with_groq, generate_activity_wi
 
 # Função para carregar os dados do CSV
 def load_data():
-    file_path = '/mnt/data/datasets - diagnostic_assessment.csv'  # Substitua pelo caminho real do seu arquivo
+    file_path = 'datasets - diagnostic_assessment.csv'  # Substitua pelo caminho real do seu arquivo
     data = pd.read_csv(file_path)
     return data
 

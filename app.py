@@ -79,7 +79,7 @@ def main():
     if st.sidebar.button("Gerar Atividade"):
         if api_token and groq_api_key:
             st.info("🚀 Gerando a atividade, por favor, aguarde...")
-            atividade_texto = fetch_activity(api_token, tema, nivel_dificuldade)
+            atividade_texto = generate_activity_with_rag(api_token, tema, nivel_dificuldade)
 
             if atividade_texto:
                 st.success("✅ Requisição à API principal bem-sucedida.")

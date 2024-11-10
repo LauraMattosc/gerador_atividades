@@ -38,6 +38,7 @@ O sistema segue uma arquitetura de três camadas principais:
 2. **LLMs e APIs**:
    - **Groq**: O modelo Groq processa e gera respostas para os prompts de planejamento de aula.
    - **Whisper API**: Transcrição de áudio para texto, permitindo interações por voz.
+   - **Anvil**: Python-based drag-and-drop web app builder.
 3. **Interface**:
    - **Streamlit**: Interface interativa que permite visualização de dados e interação com o sistema.
    - **WhatsApp via Turn**: Plataforma de comunicação com os usuários.
@@ -99,13 +100,13 @@ A base de dados do **AlfaTutor** contém mais de **6.000 planos de aula** que se
 
 ## Exemplo de Interface
 
-Aqui está um exemplo de como o **AlfaTutor** se apresenta para os professores:
+Aqui está um exemplo da arquitetura do **AlfaTutor** se apresenta para os professores:
 
-![AlfaTutor Interface](image.png)
+![AlfaTutor Interface](./image.png)
 
 **GIF da Demonstração da Interface:**
 
-![Demonstração](sandbox:chrome-capture-2024-11-10 (1).gif)
+![Demonstração](./chrome-capture-2024-11-10 (1).gif)
 
 ## Contribuições
 

@@ -6,6 +6,9 @@ from api_requests import call_api  # Remova qualquer referência a process_with_
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
 import toml
+from multimodality import *
+
+import toml
 import logging
 
 # Configuração do logger para imprimir no terminal
@@ -171,6 +174,7 @@ def main():
         st.error(f"Erro ao analisar os dados com a IA da Llama: {e}")
         logger.error(f"Erro ao analisar os dados com a IA: {e}")
 
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade","🖼️ Gerar Imagem"])
     tab_dados, tab_atividade = st.tabs(["📊 Dados da Classe", "📝 Gerar Aula"])
 
     with tab_dados:
@@ -181,6 +185,39 @@ def main():
     with tab_atividade:
         if st.button("Gerar Aula"):
             try:
+                api_token = st.secrets["api"]["api_token"]
+                st.info("🚀 Gerando a atividade, por favor, aguarde...")
+                try:
+                    prompt = generate_prompt_for_activity(componente, unidade_tematica)
+                    atividade_texto = generate_activity_with_rag(api_token, prompt)
+                    if atividade_texto:
+                        st.success("✅ Requisição à API principal bem-sucedida.")
+                        resposta_final = process_with_groq(groq_api_key, atividade_texto)
+
+                        if resposta_final:
+                            st.markdown(
+                                f"""
+                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
+                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
+                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+                        # salva o resultado em arquivo .txt para ser acessado 
+                        # no processo de geração de imagem
+                        with open("resposta_final.txt", "w") as file:
+                            file.write(resposta_final)
+
+                        else:
+                            st.error("❌ Erro ao processar a atividade com a API Groq.")
+                    else:
+                        st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                except Exception as e:
+                    st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
+            except KeyError as e:
+                st.error(f"Erro ao carregar as credenciais da API: {e}")
                 # Exibe o título do plano de aula após o botão ser pressionado
                 plano_titulo = f"Plano de Aula de {componente} para o {turma}"
                 st.subheader(plano_titulo)
@@ -290,6 +327,10 @@ def main():
                     )
 
             except Exception as e:
+                st.error(f"Erro ao gerar a atividade: {e}")
+    
+    with tabs[2]:
+        create_image_ui()
                 st.error(f"Erro ao gerar o plano: {str(e)}")
                 st.markdown("### ❗ **Detalhes do Erro**")
                 st.markdown(

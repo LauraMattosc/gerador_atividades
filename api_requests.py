@@ -25,7 +25,7 @@ def load_api_key() -> Optional[str]:
         logger.error(f"Erro ao carregar API key: {e}")
         return None
 
-def call_api(prompt: str, model: str = "llama3-8b-8192") -> Optional[str]:
+def call_api(prompt: str, model: str = "llama-3.2-1b-preview") -> Optional[str]:
     """
     Processa o prompt usando a API Groq e retorna uma resposta ou um plano genérico em caso de falha.
     """

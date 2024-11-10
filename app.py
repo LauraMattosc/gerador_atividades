@@ -42,23 +42,15 @@ def get_user_inputs(data):
     
     return turma, componente, unidade_tematica, objetivo_conhecimento
 
-def display_class_data(data: pd.DataFrame, turma: str):
+def display_class_data(data: pd.DataFrame, turma: str, nome_busca: str = ""):
     """Exibe os dados da turma, como gráfico e tabela de hipóteses."""
     data = data[data['class_name'] == turma]
     st.subheader("Veja a distribuição dos seus alunos por hipótese")
+
+    # Contagem e exibição dos gráficos
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     labels = hypothesis_counts.index
     sizes = hypothesis_counts.values
-    colors = ['#86E085', '#C8FFBB', '#FFF6A1', '#FFC9A3', '#FFA9B8', '#FFFFFF']
-
-    fig1, ax1 = plt.subplots(figsize=(2, 1))
-    wedges, texts, autotexts = ax1.pie(sizes, autopct='%1.1f%%', startangle=70, colors=colors)
-    ax1.legend(wedges, labels, title="Hipóteses", loc="center left", bbox_to_anchor=(1, 0, 0.2, 1), prop={'size': 2})
-    plt.setp(autotexts, size=4)
-    plt.tight_layout()
-    st.pyplot(fig1)
-
-    st.subheader('Veja as informações de cada um dos seus alunos')
     color_map = {
         'Alfabética': '#86E085',
         'Silábico-alfabética': '#C8FFBB',
@@ -66,7 +58,27 @@ def display_class_data(data: pd.DataFrame, turma: str):
         'Silábica s/ valor': '#FFC9A3',
         'Pré-silábica': '#FFA9B8'
     }
+    colors = [color_map.get(label, '#FFFFFF') for label in labels]
 
+    # Gráfico de pizza
+    fig1, ax1 = plt.subplots(figsize=(3, 2))
+    wedges, texts, autotexts = ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=70, colors=colors)
+
+    # Ajusta o tamanho dos rótulos (labels)
+    plt.setp(texts, size=4)  # Diminui o tamanho dos rótulos
+    plt.setp(autotexts, size=3)  # Diminui o tamanho dos percentuais
+
+  #  plt.tight_layout()
+    st.pyplot(fig1)
+
+    # Campo de busca por nome logo abaixo do gráfico
+    nome_busca = st.text_input("Buscar por nome do aluno:", key=f"nome_busca_{turma}")
+    if nome_busca:
+        data = data[data['student_name'].str.contains(nome_busca, case=False, na=False)]
+
+    st.subheader('Veja as informações de cada um dos seus alunos')
+
+    # Formatação da tabela com cores
     def highlight_hypothesis(val):
         color = color_map.get(val, "#FFFFFF")
         return f'background-color: {color}'
@@ -74,7 +86,7 @@ def display_class_data(data: pd.DataFrame, turma: str):
     styled_data = data.style.apply(
         lambda x: [highlight_hypothesis(v) for v in x], subset=['hypothesis_name']
     )
-    st.dataframe(styled_data, width=1000)
+    st.dataframe(styled_data, width=1500)
 
 def clean_response(response: str) -> str:
     """
@@ -154,13 +166,12 @@ def format_lesson_plan(plan: str) -> str:
     formatted_plan = plan.replace("\n", " ").replace("\r", "").strip()
     formatted_plan = ' '.join(formatted_plan.split())
     formatted_plan = formatted_plan.replace("# Plano de Aula", "\n# Plano de Aula")
-    formatted_plan = formatted_plan.replace("## ", "\n\n## ").replace("### ", "\n\n### ")
+    formatted_plan = formatted_plan.replace("## ", "\n\n## ").replace("### ", "\n\n## ")
     formatted_plan = formatted_plan.replace("- ", "\n- ")
     return formatted_plan
 
 def main():
     configure_ui()
-
     try:
         data = pd.read_csv('dados.csv')
     except Exception as e:
@@ -172,9 +183,15 @@ def main():
 
     st.subheader("Resumo do Nível de Alfabetização da Turma 📊")
 
-    hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
-    for hypothesis, percentage in hypothesis_counts.items():
-        st.write(f"- **{hypothesis}:** {percentage:.1f}%")
+    # Count the number of students and percentages
+    hypothesis_counts = data['hypothesis_name'].value_counts()
+    total_students = hypothesis_counts.sum()
+    hypothesis_percentages = (hypothesis_counts / total_students) * 100
+
+    # Display each hypothesis with the number of students and percentage
+    for hypothesis, count in hypothesis_counts.items():
+        percentage = hypothesis_percentages[hypothesis]
+        st.write(f"- **{hypothesis}:** {count} alunos ({percentage:.1f}%)")
 
     try:
         tips = analyze_class_data(data)
@@ -197,10 +214,13 @@ def main():
     tab_dados, tab_atividade = st.tabs(["📊 Detalhamento da Turma", "📝 Gerar Aula"])
 
     with tab_dados:
+              
+        # Chama a função para exibir os dados da turma com a busca por nome incluída
         display_class_data(data, turma)
 
+
     with tab_atividade:
-        st.header("Agora vamos preparar a sua próxima aula!")
+        st.subheader("Agora vamos preparar a sua próxima aula!")
         if st.button("Gerar Aula"):
             try:
                 current_month = datetime.datetime.now().strftime("%B de %Y")

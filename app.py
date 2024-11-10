@@ -105,13 +105,25 @@ def analyze_class_data(data, groq_api_key):
 # Função principal para lidar com a lógica do aplicativo
 def main():
     configure_ui()
-
+  
     # Carregar os dados do CSV
     try:
         data = pd.read_csv('dados.csv')
+        
+        # Atualizar o método deprecated para o novo método map
+        def highlight_hypothesis(val):
+            color = color_map.get(val, '#FFFFFF')
+            return f'background-color: {color}'
+        
+        styled_data = data[['student_name', 'hypothesis_name']].style.map(
+            highlight_hypothesis, 
+            subset=['hypothesis_name']
+        )
+        
     except Exception as e:
         st.error(f"Erro ao carregar os dados do CSV: {e}")
         return
+
 
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 

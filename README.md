@@ -102,11 +102,11 @@ A base de dados do **AlfaTutor** contém mais de **6.000 planos de aula** que se
 
 Aqui está um exemplo da arquitetura do **AlfaTutor** se apresenta para os professores:
 
-./(arquitetura.png)
+[gerador_atividades](arquitetura.png)
 
 **GIF da Demonstração da Interface:**
 
-./(chrome-capture-2024-11-10 (1).gif)
+[gerador_atividades](chrome-capture-2024-11-10 (1).gif)
 
 ## Contribuições
 

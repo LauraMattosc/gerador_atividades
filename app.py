@@ -14,15 +14,24 @@ st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wid
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Título principal em grande
+st.write("# Olá, professora Patrícia! :wave:")
+
+# Texto menor abaixo
+st.write(
+    "Sou a Ane, sua parceira na jornada da alfabetização! :star2:\n\n"
+    "Estou aqui para ajudar você a garantir que todas as suas crianças alcancem o sucesso na leitura e escrita.\n\n"
+)
+
 def configure_ui():
-    st.title('📊 Painel da Classe e Gerador de Aulas')
+    st.write('Vamos ver como está sua turma?')
 
 def get_user_inputs(data):
     """Captura as entradas de dados do usuário."""
     st.sidebar.header("Configurações da Atividade")
     turmas = data['class_name'].unique()
     turma = st.sidebar.selectbox("Escolha a turma:", turmas)
-    componente = st.sidebar.selectbox("Escolha o componente:", ["Matemática", "Língua Portuguesa", "Escrita Compartilhada e Autônoma"])
+    componente = st.sidebar.selectbox("Escolha o componente:", ["Língua Portuguesa", "Matemática"])
     unidade_tematica = st.sidebar.selectbox("Escolha a unidade temática:", ["Leitura", "Escrita", "Produção de Texto"])
     objetivos_map = {
         "Leitura": ["Compreensão em Leitura"],
@@ -36,20 +45,20 @@ def get_user_inputs(data):
 def display_class_data(data: pd.DataFrame, turma: str):
     """Exibe os dados da turma, como gráfico e tabela de hipóteses."""
     data = data[data['class_name'] == turma]
-    st.subheader("Porcentagem de Alunos por Hipótese")
+    st.subheader("Veja a distribuição dos seus alunos por hipótese")
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     labels = hypothesis_counts.index
     sizes = hypothesis_counts.values
     colors = ['#86E085', '#C8FFBB', '#FFF6A1', '#FFC9A3', '#FFA9B8', '#FFFFFF']
 
-    fig1, ax1 = plt.subplots(figsize=(5, 3))
+    fig1, ax1 = plt.subplots(figsize=(2, 1))
     wedges, texts, autotexts = ax1.pie(sizes, autopct='%1.1f%%', startangle=70, colors=colors)
-    ax1.legend(wedges, labels, title="Hipóteses", loc="center left", bbox_to_anchor=(1, 0, 0.2, 1), prop={'size': 8})
-    plt.setp(autotexts, size=8)
+    ax1.legend(wedges, labels, title="Hipóteses", loc="center left", bbox_to_anchor=(1, 0, 0.2, 1), prop={'size': 2})
+    plt.setp(autotexts, size=4)
     plt.tight_layout()
     st.pyplot(fig1)
 
-    st.subheader('Tabela de Alunos por Hipótese')
+    st.subheader('Veja as informações de cada um dos seus alunos')
     color_map = {
         'Alfabética': '#86E085',
         'Silábico-alfabética': '#C8FFBB',
@@ -161,7 +170,8 @@ def main():
 
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
-    st.subheader("Resumo Estratégico")
+    st.subheader("Resumo do Nível de Alfabetização da Turma 📊")
+
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     for hypothesis, percentage in hypothesis_counts.items():
         st.write(f"- **{hypothesis}:** {percentage:.1f}%")
@@ -184,12 +194,13 @@ def main():
         st.error(f"Erro ao analisar os dados com a IA: {e}")
         logger.error(f"Erro ao analisar os dados com a IA: {e}")
 
-    tab_dados, tab_atividade = st.tabs(["📊 Dados da Classe", "📝 Gerar Aula"])
+    tab_dados, tab_atividade = st.tabs(["📊 Detalhamento da Turma", "📝 Gerar Aula"])
 
     with tab_dados:
         display_class_data(data, turma)
 
     with tab_atividade:
+        st.header("Agora vamos preparar a sua próxima aula!")
         if st.button("Gerar Aula"):
             try:
                 current_month = datetime.datetime.now().strftime("%B de %Y")

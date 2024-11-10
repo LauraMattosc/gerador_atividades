@@ -1,6 +1,15 @@
 
 # Sistema de Alfabetização e Planejamento de Aulas - AlfaTutor
 
+## Exemplo de Interface
+
+Aqui está um exemplo da arquitetura do **AlfaTutor** se apresenta para os professores:
+
+<img src="arquitetura.png" alt="Chat App" width="600"/>
+
+**GIF da Demonstração da Interface:**
+
+<img src="chrome-capture-2024-11-10 (1).gif" alt="Chat App" width="600"/>
 ## Descrição
 
 O **AlfaTutor** é uma ferramenta interativa desenvolvida para ajudar os professores no processo de alfabetização e no planejamento de aulas. 
@@ -113,16 +122,6 @@ Certifique-se de configurar a chave da **API Groq** no arquivo `secrets.toml`.
 ## Base de Dados de Planos de Aula
 
 A base de dados do **AlfaTutor** contém mais de **6.000 planos de aula** que servem como insumo para o processo de geração de novos planos. Para a demonstração, essa base foi recortada, oferecendo uma versão reduzida com exemplos de planos. Esses dados ajudam a IA a gerar planos de aula mais precisos e específicos, adaptados às necessidades da turma.
-
-## Exemplo de Interface
-
-Aqui está um exemplo da arquitetura do **AlfaTutor** se apresenta para os professores:
-
-<img src="arquitetura.png" alt="Chat App" width="600"/>
-
-**GIF da Demonstração da Interface:**
-
-<img src="chrome-capture-2024-11-10 (1).gif" alt="Chat App" width="600"/>
 
 ## Contribuições
 

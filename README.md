@@ -10,6 +10,7 @@ Aqui está um exemplo da arquitetura do **AlfaTutor** se apresenta para os profe
 **GIF da Demonstração da Interface:**
 
 <img src="chrome-capture-2024-11-10 (1).gif" alt="Chat App" width="600"/>
+
 ## Descrição
 
 O **AlfaTutor** é uma ferramenta interativa desenvolvida para ajudar os professores no processo de alfabetização e no planejamento de aulas. 

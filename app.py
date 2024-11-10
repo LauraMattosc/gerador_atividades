@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
+from api_requests import fetch_activity, process_with_groq
+import toml
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
+
 
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
@@ -91,7 +93,7 @@ def display_class_data(data, turma):
         color = color_map.get(val, '#FFFFFF')
         return f'background-color: {color}'
 
-    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(highlight_hypothesis, subset=['hypothesis_name'])
+    styled_data = data[['student_name', 'hypothesis_name']].style.map(highlight_hypothesis, subset=['hypothesis_name'])
     st.dataframe(styled_data, width=1000)
 
 # Função para analisar os dados da turma e fornecer dicas
@@ -126,6 +128,12 @@ def main():
 
 
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
+
+    # Carregar as credenciais do arquivo secrets.toml
+
+    config = toml.load('credentials.toml')
+    api_token = config.get("api_token", "Not found")
+    groq_api_key = config.get("groq_api_key", "Not found")
 
     # Dados simulados para exemplo
     teacher = {'name': 'Silva'}
@@ -177,31 +185,34 @@ def main():
                 st.info("🚀 Gerando a atividade, por favor, aguarde...")
                 try:
                     prompt = generate_prompt_for_activity(componente, unidade_tematica)
-                    atividade_texto = generate_activity_with_rag(api_token, prompt)
+                    atividade_texto = fetch_activity(api_token, componente, unidade_tematica)
                     if atividade_texto:
                         st.success("✅ Requisição à API principal bem-sucedida.")
                         resposta_final = process_with_groq(groq_api_key, atividade_texto)
-
-                        if resposta_final:
-                            st.markdown(
-                                f"""
-                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.error("❌ Erro ao processar a atividade com a API Groq.")
+                        ...
                     else:
                         st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
+                        st.write(f"Erro: {fetch_activity(api_token, componente, unidade_tematica)}")
+                        st.write(f"Componente: {componente}")
+                        st.write(f"Unidade temática: {unidade_tematica}")
+                        st.write(f"API Token: {api_token}")
+                        st.write(f"Prompt: {prompt}")
+                        st.write(f"Requisição à API: {atividade_texto}")
                 except Exception as e:
                     st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
+                    st.write(f"Erro: {e}")
+                    st.write(f"Componente: {componente}")
+                    st.write(f"Unidade temática: {unidade_tematica}")
+                    st.write(f"API Token: {api_token}")
+                    st.write(f"Prompt: {prompt}")
+                    st.write(f"Requisição à API: {atividade_texto}")
             except KeyError as e:
                 st.error(f"Erro ao carregar as credenciais da API: {e}")
-            except Exception as e:
-                st.error(f"Erro ao gerar a atividade: {e}")
+                st.write(f"Erro: {e}")
+                st.write(f"Componente: {componente}")
+                st.write(f"Unidade temática: {unidade_tematica}")
+                st.write(f"API Token: {api_token}")
+                st.write(f"Prompt: {prompt}")
 
 if __name__ == "__main__":
     main()

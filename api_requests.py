@@ -1,33 +1,27 @@
-import requests
 import json
 from groq import Groq
 
 def fetch_activity(api_token, componente, unidade_tematica):
-    """Faz uma requisição à API principal para obter a atividade.
+    """Lê os fragmentos de atividade a partir do arquivo fonte.json.
 
     Parâmetros:
-    api_token (str): Token de autenticação da API principal.
+    api_token (str): Token de autenticação da API principal (não mais necessário).
     componente (str): Componente da atividade a ser gerada.
     unidade_tematica (str): Unidade temática da atividade.
 
     Retorna:
-    str: Texto concatenado dos fragmentos da atividade ou None se a requisição falhar.
+    str: Texto concatenado dos fragmentos da atividade.
     """
-    url_fragments = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-    payload_atividade = {
-        "question": f"Crie uma atividade de {componente.lower()} na unidade temática de {unidade_tematica.lower()} para alunos de ensino fundamental."
-    }
-    response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
-    if response.status_code in [200, 201]:
-        fragmentos = response.json()
-        return "".join([frag['text'] for frag in fragmentos])
-    else:
-        print(f"Status: Erro na requisição. Código {response.status_code}")
-    return None
+    try:
+        with open('fonte.json', 'r', encoding='utf-8') as file:
+            fragmentos = json.load(file)
+            return "".join([frag['text'] for frag in fragmentos if 'text' in frag])
+    except FileNotFoundError:
+        print("Erro: O arquivo fonte.json não foi encontrado.")
+        return None
+    except json.JSONDecodeError:
+        print("Erro: Falha ao decodificar o arquivo JSON.")
+        return None
 
 def process_with_groq(groq_api_key, prompt):
     """Processa o texto com a API Groq para gerar uma atividade detalhada."""
@@ -73,39 +67,4 @@ def process_with_groq(groq_api_key, prompt):
         print(f" Tipo de erro: {type(e).__name__}")
         return None
 
-def generate_activity_with_rag(api_token, prompt):
-    """Gera uma atividade usando a API RAG.
-
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    prompt (str): Prompt gerado para a criação da atividade.
-
-    Retorna:
-    str: Texto da atividade gerada ou None se a requisição falhar.
-    """
-    url = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-    data = {
-        "question": prompt
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        resposta_json = response.json()
-        if isinstance(resposta_json, list):
-            return "".join([frag['text'] for frag in resposta_json])
-        else:
-            raise Exception(f"Resposta inesperada da API: esperava uma lista, mas recebeu {type(resposta_json)}")
-    except requests.exceptions.HTTPError as http_err:
-        error_message = response.json().get('message', 'No additional error message provided')
-        raise Exception(f"HTTP error occurred: {http_err} - {error_message}")
-    except requests.exceptions.ConnectionError as conn_err:
-        raise Exception(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        raise Exception(f"Timeout error occurred: {timeout_err}")
-    except requests.exceptions.RequestException as req_err:
-        raise Exception(f"An error occurred: {req_err}")
+# A função generate_activity_with_rag foi removida porque não é mais necessária para essa abordagem.

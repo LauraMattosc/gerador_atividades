@@ -1,5 +1,3 @@
-# api_requests.py
-
 import requests
 from typing import Optional
 import json
@@ -7,27 +5,36 @@ import logging
 import streamlit as st
 
 # Configuração do logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)  # Alterado para DEBUG para mais detalhes
 logger = logging.getLogger(__name__)
 
 def load_api_key() -> Optional[str]:
     """
     Carrega a chave da API do arquivo .streamlit/secrets.toml.
-
+    
     Retorna:
     Optional[str]: A chave da API se encontrada, caso contrário None.
     """
     try:
-        api_key = st.secrets.get("groq_api_key")
+        logger.debug("Tentando acessar a API key diretamente do secrets.toml...")
+        api_key = st.secrets["groq_api_key"]  # Acessa diretamente a chave
         if api_key:
             logger.info("API key carregada com sucesso.")
+            st.write("Debug: API key carregada com sucesso (api_requests).")  # Apenas para verificação
             return api_key
         else:
-            logger.warning("API key não encontrada.")
+            logger.warning("API key não encontrada no secrets.toml.")
+            st.write("Debug: API key não encontrada no secrets.toml (api_requests).")  # Apenas para verificação
             return None
+    except KeyError as e:
+        logger.error(f"Chave 'groq_api_key' não encontrada: {e}")
+        st.write(f"Debug: Chave 'groq_api_key' não encontrada: {e} (api_requests)")  # Apenas para verificação
+        return None
     except Exception as e:
         logger.error(f"Erro ao carregar API key: {e}")
+        st.write(f"Debug: Erro ao carregar API key: {e} (api_requests)")  # Apenas para verificação
         return None
+
 
 def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
     """
@@ -40,12 +47,15 @@ def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
     Retorna:
     Optional[str]: A resposta da API ou um plano genérico em caso de falha.
     """
+    logger.debug("Iniciando chamada à função call_api.")
     try:
         api_key = load_api_key()
         if not api_key:
             logger.error("API key não disponível. Abandonando chamada à API.")
+            st.write("Debug: API key não disponível, chamada à API abandonada.")  # Apenas para verificação
             return generate_generic_plan()
 
+        logger.debug("Configurando cabeçalhos da requisição.")
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -67,8 +77,8 @@ def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
             "max_tokens": 4096
         }
 
-        logger.info("Enviando requisição para a API com o seguinte payload:")
-        logger.info(json.dumps(data, indent=2, ensure_ascii=False))
+        logger.info("Enviando requisição para a API...")
+        logger.debug(f"Payload da requisição: {json.dumps(data, indent=2, ensure_ascii=False)}")
 
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -77,23 +87,28 @@ def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
             timeout=30
         )
 
+        logger.debug("Recebendo resposta da API.")
         logger.info(f"Status da resposta da API: {response.status_code}")
-        logger.info(f"Resposta bruta da API: {response.text}")
+        logger.debug(f"Resposta da API: {response.text}")
 
         if response.status_code == 200:
             try:
                 result = response.json()
                 content = result["choices"][0]["message"]["content"]
+                logger.info("Resposta da API processada com sucesso.")
                 return content
             except (KeyError, IndexError, json.JSONDecodeError) as parse_error:
                 logger.error(f"Erro ao processar a estrutura da resposta da API: {parse_error}")
+                st.write(f"Debug: Erro ao processar a resposta da API: {parse_error}")  # Apenas para verificação
                 return generate_generic_plan()
         else:
             logger.error(f"Erro na API: {response.status_code} - Detalhes: {response.text}")
+            st.write(f"Debug: Erro na API, código {response.status_code}")  # Apenas para verificação
             return generate_generic_plan()
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"Erro na requisição: {e}")
+        logger.error(f"Erro na requisição à API: {e}")
+        st.write(f"Debug: Erro na requisição à API: {e}")  # Apenas para verificação
         return generate_generic_plan()
 
 def generate_generic_plan() -> str:
@@ -104,6 +119,7 @@ def generate_generic_plan() -> str:
     str: Um plano de aula genérico formatado.
     """
     logger.warning("Retornando plano de aula genérico devido a erro.")
+    st.write("Debug: Retornando plano genérico.")  # Apenas para verificação
     return """
     # Plano de Aula Genérico
 
@@ -136,6 +152,7 @@ def generate_generic_plan() -> str:
     ## Avaliação e Acompanhamento 📊
     - Observação direta e registro do progresso dos alunos.
     """
+
 
 def fetch_activity(componente: str, unidade_tematica: str, objetivo_conhecimento: str) -> Optional[str]:
     """

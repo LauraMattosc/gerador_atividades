@@ -10,6 +10,13 @@ import logging
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wide")
 
+# Verificação da chave da API
+st.write("Debug: Verificando a chave da API diretamente.")
+try:
+    st.write("API key:", st.secrets["groq_api_key"])  # Apenas para verificar se a chave é acessível
+except KeyError as e:
+    st.write(f"Erro: {e}")
+
 # Configuração do logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,19 +44,9 @@ def get_user_inputs(data):
 
 # Função para exibir dados da turma
 
-def display_class_data(data, turma):
-    if data is None:
-        st.error("Erro ao carregar os dados da classe.")
-        logger.error("Dados da classe não carregados corretamente.")
-        return
-
+# Função para exibir dados da turma
+def display_class_data(data: pd.DataFrame, turma: str):
     data = data[data['class_name'] == turma]
-    required_columns = ['student_name', 'class_name', 'month', 'hypothesis_name']
-    if not all(column in data.columns for column in required_columns):
-        st.error(f"O arquivo CSV deve conter as seguintes colunas: {', '.join(required_columns)}")
-        logger.error(f"Colunas ausentes no arquivo CSV. Esperado: {', '.join(required_columns)}")
-        return
-
     st.subheader("Porcentagem de Alunos por Hipótese")
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     labels = hypothesis_counts.index
@@ -57,17 +54,8 @@ def display_class_data(data, turma):
     colors = ['#86E085', '#C8FFBB', '#FFF6A1', '#FFC9A3', '#FFA9B8', '#FFFFFF']
 
     fig1, ax1 = plt.subplots(figsize=(5, 3))
-    wedges, texts, autotexts = ax1.pie(sizes, 
-                                       labels=None, 
-                                       autopct='%1.1f%%', 
-                                       startangle=70, 
-                                       colors=colors)
-    ax1.legend(wedges, labels,
-               title="Hipóteses",
-               loc="center left",
-               bbox_to_anchor=(1, 0, 0.2, 1),
-               prop={'size': 8})
-
+    wedges, texts, autotexts = ax1.pie(sizes, autopct='%1.1f%%', startangle=70, colors=colors)
+    ax1.legend(wedges, labels, title="Hipóteses", loc="center left", bbox_to_anchor=(1, 0, 0.2, 1), prop={'size': 8})
     plt.setp(autotexts, size=8)
     plt.tight_layout()
     st.pyplot(fig1)
@@ -82,11 +70,16 @@ def display_class_data(data, turma):
     }
 
     def highlight_hypothesis(val):
-        color = color_map.get(val, '#FFFFFF')
-        return f'background-color: {color}'
+        return color_map.get(val, "#FFFFFF")
 
-    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(highlight_hypothesis, subset=['hypothesis_name'])
+    # Aplicando as cores com Styler.format() para a coluna de hipóteses
+    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(
+        lambda x: f'background-color: {highlight_hypothesis(x)}', subset=['hypothesis_name']
+    )
+
     st.dataframe(styled_data, width=1000)
+
+
 
 # Função para analisar os dados da turma e fornecer dicas
 

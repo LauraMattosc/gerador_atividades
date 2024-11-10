@@ -1,44 +1,43 @@
-import requests
-from typing import Optional
-import json
+from groq import Groq  # Certifique-se de ter instalado a biblioteca correta
 import logging
 import streamlit as st
+from typing import Optional
 
 # Configuração do logger
-logging.basicConfig(level=logging.DEBUG)  # Alterado para DEBUG para mais detalhes
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def load_api_key() -> Optional[str]:
     """
     Carrega a chave da API do arquivo .streamlit/secrets.toml.
-    
+
     Retorna:
     Optional[str]: A chave da API se encontrada, caso contrário None.
     """
     try:
         logger.debug("Tentando acessar a API key diretamente do secrets.toml...")
-        api_key = st.secrets["groq_api_key"]  # Acessa diretamente a chave
+        api_key = st.secrets["groq_api_key"]
         if api_key:
             logger.info("API key carregada com sucesso.")
-            st.write("Debug: API key carregada com sucesso (api_requests).")  # Apenas para verificação
             return api_key
         else:
-            logger.warning("API key não encontrada no secrets.toml.")
-            st.write("Debug: API key não encontrada no secrets.toml (api_requests).")  # Apenas para verificação
+            logger.warning("API key não encontrada.")
+            st.write("Debug: API key não encontrada.")  # Apenas para verificação
             return None
     except KeyError as e:
         logger.error(f"Chave 'groq_api_key' não encontrada: {e}")
-        st.write(f"Debug: Chave 'groq_api_key' não encontrada: {e} (api_requests)")  # Apenas para verificação
+        st.write(f"Debug: Chave 'groq_api_key' não encontrada: {e}")  # Apenas para verificação
         return None
     except Exception as e:
         logger.error(f"Erro ao carregar API key: {e}")
-        st.write(f"Debug: Erro ao carregar API key: {e} (api_requests)")  # Apenas para verificação
+        st.write(f"Debug: Erro ao carregar API key: {e}")  # Apenas para verificação
         return None
 
-
-def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
+def call_api(prompt: str, model: str = "llama3-8b-8192") -> Optional[str]:
+    logger.debug(f"Iniciando chamada à função call_api com o modelo: {model}")
+    st.write(f"Debug: Chamando a API com o modelo: {model}")  # Para verificação
     """
-    Processa o prompt usando a API e retorna uma resposta ou um plano genérico em caso de falha.
+    Processa o prompt usando a API Groq e retorna uma resposta ou um plano genérico em caso de falha.
 
     Parâmetros:
     prompt (str): O prompt a ser processado.
@@ -55,15 +54,15 @@ def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
             st.write("Debug: API key não disponível, chamada à API abandonada.")  # Apenas para verificação
             return generate_generic_plan()
 
-        logger.debug("Configurando cabeçalhos da requisição.")
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
+        # Inicialize o cliente Groq com a chave da API
+        client = Groq(api_key=api_key)
 
-        data = {
-            "model": model,
-            "messages": [
+        logger.info("Enviando requisição para a API Groq...")
+
+        # Faz a requisição usando a biblioteca da Groq
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
                 {
                     "role": "system",
                     "content": "Você é um especialista em educação, focado em criar planos de aula detalhados e personalizados."
@@ -73,42 +72,27 @@ def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
                     "content": prompt
                 }
             ],
-            "temperature": 0.7,
-            "max_tokens": 4096
-        }
-
-        logger.info("Enviando requisição para a API...")
-        logger.debug(f"Payload da requisição: {json.dumps(data, indent=2, ensure_ascii=False)}")
-
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers,
-            json=data,
-            timeout=30
+            temperature=0.7,
+            max_tokens=4096,
+            top_p=1,
+            stream=True,  # Streaming de respostas
+            stop=None
         )
 
-        logger.debug("Recebendo resposta da API.")
-        logger.info(f"Status da resposta da API: {response.status_code}")
-        logger.debug(f"Resposta da API: {response.text}")
+        logger.debug("Recebendo resposta da API com streaming.")
 
-        if response.status_code == 200:
-            try:
-                result = response.json()
-                content = result["choices"][0]["message"]["content"]
-                logger.info("Resposta da API processada com sucesso.")
-                return content
-            except (KeyError, IndexError, json.JSONDecodeError) as parse_error:
-                logger.error(f"Erro ao processar a estrutura da resposta da API: {parse_error}")
-                st.write(f"Debug: Erro ao processar a resposta da API: {parse_error}")  # Apenas para verificação
-                return generate_generic_plan()
-        else:
-            logger.error(f"Erro na API: {response.status_code} - Detalhes: {response.text}")
-            st.write(f"Debug: Erro na API, código {response.status_code}")  # Apenas para verificação
-            return generate_generic_plan()
+        # Processa a resposta em streaming
+        response_content = ""
+        for chunk in completion:
+            response_content += chunk.choices[0].delta.content or ""
+            st.write(chunk.choices[0].delta.content or "", end="")  # Apenas para visualização no Streamlit
 
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Erro na requisição à API: {e}")
-        st.write(f"Debug: Erro na requisição à API: {e}")  # Apenas para verificação
+        logger.info("Resposta da API processada com sucesso.")
+        return response_content.strip()
+
+    except Exception as e:
+        logger.error(f"Erro ao fazer a chamada à API Groq: {e}")
+        st.write(f"Debug: Erro ao fazer a chamada à API Groq: {e}")  # Apenas para verificação
         return generate_generic_plan()
 
 def generate_generic_plan() -> str:

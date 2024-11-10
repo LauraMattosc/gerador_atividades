@@ -17,6 +17,14 @@ try:
 except KeyError as e:
     st.write(f"Erro: {e}")
 
+st.write("Debug: Verificando todas as chaves em secrets.")
+try:
+    st.write("Todas as chaves disponíveis em secrets:", list(st.secrets.keys()))
+    st.write("Valor de 'groq_api_key':", st.secrets["groq_api_key"])
+except KeyError as e:
+    st.write(f"Erro: {e}")
+
+
 # Configuração do logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

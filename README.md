@@ -125,10 +125,6 @@ Este projeto está licenciado sob a **MIT License**. Consulte o arquivo [LICENSE
 
 Se você tiver dúvidas ou sugestões, entre em contato:
 
-- **Email**: contato@alfatutor.com
-- **LinkedIn**: [Seu LinkedIn](https://www.linkedin.com/in/seu-perfil)
-- **GitHub**: [Seu GitHub](https://github.com/seu_usuario)
-
 ---
 
 Obrigado por usar o **AlfaTutor**! Estamos sempre em busca de melhorar e adicionar novas funcionalidades.

@@ -101,11 +101,11 @@ A base de dados do **AlfaTutor** contém mais de **6.000 planos de aula** que se
 
 Aqui está um exemplo de como o **AlfaTutor** se apresenta para os professores:
 
-![AlfaTutor Interface](sandbox:/mnt/data/image.png)
+![AlfaTutor Interface](image.png)
 
 **GIF da Demonstração da Interface:**
 
-![Demonstração](sandbox:/mnt/data/chrome-capture-2024-11-10%20(1).gif)
+![Demonstração](sandbox:chrome-capture-2024-11-10 (1).gif)
 
 ## Contribuições
 

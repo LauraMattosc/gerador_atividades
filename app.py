@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from api_requests import call_api  # Importando a função renomeada
+from api_requests import call_api  # Importando a função da API
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
 import logging
@@ -10,29 +10,12 @@ import logging
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wide")
 
-# Verificação da chave da API
-st.write("Debug: Verificando a chave da API diretamente.")
-try:
-    st.write("API key:", st.secrets["groq_api_key"])  # Apenas para verificar se a chave é acessível
-except KeyError as e:
-    st.write(f"Erro: {e}")
-
-st.write("Debug: Verificando todas as chaves em secrets.")
-try:
-    st.write("Todas as chaves disponíveis em secrets:", list(st.secrets.keys()))
-    st.write("Valor de 'groq_api_key':", st.secrets["groq_api_key"])
-except KeyError as e:
-    st.write(f"Erro: {e}")
-
-
 # Configuração do logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def configure_ui():
     st.title('📊 Painel da Classe e Gerador de Aulas')
-
-# Funções de captura de entradas e exibição de dados da turma mantidas
 
 def get_user_inputs(data):
     """Captura as entradas de dados do usuário."""
@@ -50,10 +33,8 @@ def get_user_inputs(data):
     
     return turma, componente, unidade_tematica, objetivo_conhecimento
 
-# Função para exibir dados da turma
-
-# Função para exibir dados da turma
 def display_class_data(data: pd.DataFrame, turma: str):
+    """Exibe os dados da turma, como gráfico e tabela de hipóteses."""
     data = data[data['class_name'] == turma]
     st.subheader("Porcentagem de Alunos por Hipótese")
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
@@ -78,32 +59,68 @@ def display_class_data(data: pd.DataFrame, turma: str):
     }
 
     def highlight_hypothesis(val):
-        return color_map.get(val, "#FFFFFF")
+        color = color_map.get(val, "#FFFFFF")
+        return f'background-color: {color}'
 
-    # Aplicando as cores com Styler.format() para a coluna de hipóteses
-    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(
-        lambda x: f'background-color: {highlight_hypothesis(x)}', subset=['hypothesis_name']
+    styled_data = data.style.apply(
+        lambda x: [highlight_hypothesis(v) for v in x], subset=['hypothesis_name']
     )
-
     st.dataframe(styled_data, width=1000)
 
+def clean_response(response: str) -> str:
+    """
+    Limpa a resposta da API removendo quebras de linha e múltiplos espaços.
+    """
+    cleaned_response = response.replace('\n', ' ').replace('\r', '').strip()
+    cleaned_response = ' '.join(cleaned_response.split())
+    return cleaned_response
 
-
-# Função para analisar os dados da turma e fornecer dicas
+def format_tips_as_html(tips: str) -> str:
+    """
+    Formata as dicas como uma lista não ordenada (HTML), onde cada dica é um item da lista.
+    
+    Parâmetros:
+    tips (str): Dicas em formato de string. Cada dica pode ser separada por uma quebra de linha.
+    
+    Retorna:
+    str: Dicas formatadas como lista HTML.
+    """
+    # Divida as dicas por linha e remova linhas vazias ou espaços extras
+    dicas = [dica.strip() for dica in tips.split("\n") if dica.strip()]
+    
+    # Inicia a lista HTML
+    formatted_tips = "<ul>"
+    
+    # Adiciona cada dica como um item de lista <li>
+    for dica in dicas:
+        formatted_tips += f"<li>{dica}</li>"
+    
+    # Fecha a lista HTML
+    formatted_tips += "</ul>"
+    
+    return formatted_tips
 
 def analyze_class_data(data):
+    """
+    Analisa os dados da turma e retorna dicas formatadas.
+    """
     prompt = generate_prompt_for_analysis(data)
     logger.info(f"Prompt gerado para análise: {prompt}")
-    tips = call_api(prompt, model="llama2-70b-4096")  # Usando call_api genérico
+    tips = call_api(prompt, model="llama3-8b-8192")
     if tips:
-        logger.info(f"Resposta da API para dicas: {tips}")
+        logger.debug(f"Resposta da API (antes de limpar): {repr(tips)}")
+        cleaned_response = clean_response(tips)
+        formatted_tips = format_tips_as_html(cleaned_response)  # Formata como HTML
+        logger.debug(f"Resposta da API (depois de limpar e formatar): {repr(formatted_tips)}")
+        return formatted_tips
     else:
-        logger.error("❌ O retorno da API foi nulo ou vazio para as dicas.")
-    return tips
-
-# Função para gerar plano de aula
+        logger.error("❌ O retorno da API foi nulo ou vazio.")
+        return "Nenhuma dica foi retornada."
 
 def generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, current_month, perfis_turma):
+    """
+    Gera e formata o plano de aula com base nos dados fornecidos.
+    """
     prompt = generate_prompt_for_activity(
         componente,
         unidade_tematica,
@@ -112,14 +129,25 @@ def generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, cu
         perfis_turma
     )
     logger.info(f"Prompt gerado para o plano de aula: {prompt}")
-    plano_aula = call_api(prompt, model="llama2-90b-4096")  # Usando call_api genérico
+    plano_aula = call_api(prompt, model="llama3-8b-8192")
     if plano_aula:
+        formatted_plan = format_lesson_plan(clean_response(plano_aula))
         logger.info("Plano de aula gerado com sucesso pela IA.")
+        return formatted_plan
     else:
         logger.error("❌ O retorno da API foi nulo ou vazio. Verifique o prompt e a resposta.")
-    return plano_aula
+        return "Não foi possível gerar o plano de aula. Verifique os dados e tente novamente."
 
-# Função principal
+def format_lesson_plan(plan: str) -> str:
+    """
+    Formata o plano de aula em Markdown com seções e listas bem definidas.
+    """
+    formatted_plan = plan.replace("\n", " ").replace("\r", "").strip()
+    formatted_plan = ' '.join(formatted_plan.split())
+    formatted_plan = formatted_plan.replace("# Plano de Aula", "\n# Plano de Aula")
+    formatted_plan = formatted_plan.replace("## ", "\n\n## ").replace("### ", "\n\n### ")
+    formatted_plan = formatted_plan.replace("- ", "\n- ")
+    return formatted_plan
 
 def main():
     configure_ui()
@@ -150,6 +178,8 @@ def main():
                 """,
                 unsafe_allow_html=True
             )
+        else:
+            st.warning("Nenhuma dica foi retornada pela API.")
     except Exception as e:
         st.error(f"Erro ao analisar os dados com a IA: {e}")
         logger.error(f"Erro ao analisar os dados com a IA: {e}")
@@ -163,7 +193,7 @@ def main():
         if st.button("Gerar Aula"):
             try:
                 current_month = datetime.datetime.now().strftime("%B de %Y")
-                perfis_turma = "Perfil detalhado da turma aqui."  # Ajustar conforme necessidade
+                perfis_turma = "Perfil detalhado da turma aqui."
                 plano_aula = generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, current_month, perfis_turma)
                 if plano_aula:
                     st.markdown(
@@ -187,28 +217,8 @@ def main():
                             st.info("Funcionalidade de salvamento em desenvolvimento")
                 else:
                     st.error("❌ Não foi possível gerar o plano de aula. Tente novamente.")
-                    st.markdown("### ❗ **Detalhes do Erro**")
-                    st.markdown(
-                        f"""
-                        - **🧩 Componente:** {componente}
-                        - **📚 Unidade Temática:** {unidade_tematica}
-                        - **🎯 Objetivo:** {objetivo_conhecimento}
-                        - **📝 Prompt:** Erro ao processar
-                        """
-                    )
             except Exception as e:
                 st.error(f"Erro ao gerar o plano: {str(e)}")
-                st.markdown("### ❗ **Detalhes do Erro**")
-                st.markdown(
-                    f"""
-                    - **🧩 Componente:** {componente}
-                    - **📚 Unidade Temática:** {unidade_tematica}
-                    - **🎯 Objetivo:** {objetivo_conhecimento}
-                    - **❌ Erro:** {str(e)}
-                    """
-                )
-                logger.error(f"Erro ao gerar o plano: {str(e)}")
-
 
 if __name__ == "__main__":
-        main()
+    main()

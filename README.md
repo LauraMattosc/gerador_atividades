@@ -3,7 +3,9 @@
 
 ## Descrição
 
-O **AlfaTutor** é uma ferramenta interativa desenvolvida para ajudar os professores no processo de alfabetização e no planejamento de aulas. Utilizando a interface **Streamlit**, o sistema permite que os docentes visualizem o desempenho dos alunos, criem atividades educativas personalizadas e gerem planos de aula detalhados. A plataforma integra diferentes tecnologias de IA, como **Groq** e **Whisper**, para facilitar o ensino e a personalização do aprendizado.
+O **AlfaTutor** é uma ferramenta interativa desenvolvida para ajudar os professores no processo de alfabetização e no planejamento de aulas. 
+
+Utilizando a interface **Streamlit**, o sistema permite que os docentes visualizem o desempenho dos alunos, criem atividades educativas personalizadas e gerem planos de aula detalhados. A plataforma integra diferentes tecnologias de IA, como **Groq** e **Whisper**, para facilitar o ensino e a personalização do aprendizado.
 
 ## Funcionalidades
 
@@ -28,7 +30,7 @@ O sistema permite gerar atividades personalizadas de acordo com o nível de difi
 O **AlfaTutor** utiliza um modelo de IA para gerar planos de aula completos, considerando o componente curricular, unidade temática e os objetivos de conhecimento. Isso garante que os planos de aula sejam detalhados e otimizados de acordo com o nível de alfabetização da turma.
 
 ### 5. **Integração com WhatsApp**
-O sistema permite interação com alunos e professores via **WhatsApp**, utilizando a plataforma **Turn** para enviar e receber mensagens, garantindo um canal eficiente de comunicação.
+O sistema permite interação com alunos e professores via **WhatsApp**, utilizando a plataforma **Turn** para enviar e receber mensagens, garantindo um canal eficiente de comunicação. Possibilitando geração de atividades e consulta de dados de diagnósticos de alfabetização dos professores. Compatível com imputs através de comando de voz.
 
 ## Arquitetura do Sistema
 
@@ -43,12 +45,16 @@ O sistema segue uma arquitetura de três camadas principais:
    - **Streamlit**: Interface interativa que permite visualização de dados e interação com o sistema.
    - **WhatsApp via Turn**: Plataforma de comunicação com os usuários.
 
+
 ## Fluxo de Dados
 
 O fluxo de dados começa com os **bancos de dados**, onde as informações da turma são armazenadas. As interações com o sistema, como análise de desempenho e a geração de atividades, são processadas através dos **modelos de linguagem** como o **Groq** e **Whisper** para transcrição de áudio. O sistema então exibe os resultados através da interface **Streamlit**, ou envia notificações via **WhatsApp**.
 
 ## Tecnologias Utilizadas
-
+- **Modelos LLama**:
+  -llama-3.2-1b-preview
+  -llama-3.2-90b-text-preview
+- **CodeGPT**: Copilot Generator Platform - Assistente de desenvolvimento integrado ao VS Code. 
 - **Streamlit**: Framework para criar interfaces interativas em Python.
 - **Pandas**: Biblioteca para análise de dados.
 - **Matplotlib**: Para gerar gráficos interativos.
@@ -56,6 +62,7 @@ O fluxo de dados começa com os **bancos de dados**, onde as informações da tu
   - **Groq**: Para geração de planos de aula detalhados.
   - **Whisper**: Para transcrição de áudio em texto.
   - **Turn**: Plataforma de integração com o WhatsApp.
+  - **Anvil**: Python-based drag-and-drop web app builder.
 
 ## Como Usar
 
@@ -64,8 +71,8 @@ O fluxo de dados começa com os **bancos de dados**, onde as informações da tu
 Clone o repositório para o seu ambiente local:
 
 ```bash
-git clone https://github.com/seu_usuario/alfatutor.git
-cd alfatutor
+git clone https://github.com/seu_usuario/gerador_atividades.git
+cd gerador_atividades
 ```
 
 ### 2. Instalando as Dependências
@@ -93,6 +100,15 @@ Certifique-se de configurar a chave da **API Groq** no arquivo `secrets.toml`.
 - **Visualizar a Turma**: Escolha a turma e visualize gráficos de desempenho.
 - **Gerar Atividades**: Selecione o tema e nível de dificuldade para gerar atividades.
 - **Gerar Planos de Aula**: O sistema usa IA para gerar planos personalizados.
+
+### 6. Integração Whatsapp
+- **Turn**: Necessário licenças da plataforma para criação de chatbots integrados ao Whatsapp.
+     -**Em breve**: Será disponibilizado arquivo com fluxo utilizado.
+- **Anvil**: Disponível através do link: https://anvil.works/
+   - Acesse Anvil, faça login e clique em New Blank App.
+   - Adicione um Módulo de Servidor:
+   - No editor Anvil, clique em Code > Add Server Module. Nomeie-o, por exemplo, como api_module.
+   - Arquivo de referência: api_anvil.py
 
 ## Base de Dados de Planos de Aula
 

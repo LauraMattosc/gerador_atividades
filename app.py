@@ -45,6 +45,39 @@ def get_user_inputs(data):
 def display_class_data(data: pd.DataFrame, turma: str, nome_busca: str = ""):
     """Exibe os dados da turma, como gráfico e tabela de hipóteses."""
     data = data[data['class_name'] == turma]
+    
+    # Início da explicação das hipóteses de escrita
+    st.write("### Explicação das Hipóteses de Escrita")
+    with st.expander("Clique para ver as explicações", expanded=True):
+        st.write(
+            "### Pré-silábica: \n"
+            "As produções são marcadas pela não correspondência entre partes do falado e partes do escrito, ou seja, não há correspondência sonora. "
+            "O uso aleatório de letras, a preferência por algumas delas (como as letras do próprio nome) e elementos gráficos como números e garatujas."
+        )
+        st.write(
+            "### Silábico sem valor sonoro: \n"
+            "A criança descobre que a quantidade de letras pode se relacionar com a quantidade de sílabas e entende que é preciso variar as letras ao escrever "
+            "tanto uma palavra quanto um conjunto delas. Nas produções, é comum a utilização de uma letra para cada sílaba. O aluno não usa, necessariamente, letras."
+        )
+        st.write(
+            "### Silábico com valor sonoro: \n"
+            "A criança entende que cada sílaba é representada por uma vogal ou consoante que expressa seu som correspondente. Em geral, as vogais são usadas para "
+            "representar cada valor sonoro. Há associação entre a quantidade de letras e quantidade de sílabas (mesmo que não conheçam ainda o conceito de sílaba)."
+        )
+        st.write(
+            "### Silábico-alfabética: \n"
+            "A criança não registra mais só uma letra para cada emissão de som, mas passa a colocar mais letras nos registros silábicos, às vezes usando-as de forma "
+            "pertinente, às vezes escolhendo-as aleatoriamente. Ao ler o que produziu, é comum que o aluno se incomode com o resultado, pedindo para trocar, eliminar ou "
+            "acrescentar letras. O incômodo é sinal de que ele está construindo hipóteses mais sofisticadas, aproximando sua escrita da convencional."
+        )
+        st.write(
+            "### Alfabética: \n"
+            "Produzir registros que podem ser lidos por outras pessoas e começa a se questionar sobre como grafar corretamente as palavras. É nessa fase, em geral, que "
+            "aparecem dúvidas sobre se a palavra é escrita com x ou ch, por exemplo. O aluno já entendeu que a escrita não é apenas uma transcrição do oral, e que várias "
+            "letras podem ser usadas para sinalizar um mesmo som, mas há regras e convenções que ditam as adequadas, caso a caso."
+        )
+    
+    # Agora, exibe o gráfico de pizza
     st.subheader("Veja a distribuição dos seus alunos por hipótese")
 
     # Contagem e exibição dos gráficos
@@ -68,7 +101,6 @@ def display_class_data(data: pd.DataFrame, turma: str, nome_busca: str = ""):
     plt.setp(texts, size=4)  # Diminui o tamanho dos rótulos
     plt.setp(autotexts, size=3)  # Diminui o tamanho dos percentuais
 
-  #  plt.tight_layout()
     st.pyplot(fig1)
 
     # Campo de busca por nome logo abaixo do gráfico
@@ -214,8 +246,7 @@ def main():
     tab_dados, tab_atividade = st.tabs(["📊 Detalhamento da Turma", "📝 Gerar Aula"])
 
     with tab_dados:
-              
-        # Chama a função para exibir os dados da turma com a busca por nome incluída
+               # Chama a função para exibir os dados da turma com a busca por nome incluída
         display_class_data(data, turma)
 
 

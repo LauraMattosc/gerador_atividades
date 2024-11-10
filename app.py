@@ -6,6 +6,7 @@ from api_requests import call_api  # Importando a função da API
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
 import logging
+from PIL import Image
 
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wide")
@@ -14,12 +15,24 @@ st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wid
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Adicionar as imagens
+# Exibe o logo do AlfaTutor (imagem maior)
+image_logo = Image.open("AlfaTutor.png")
+
+# Exibe a imagem com ajuste automático da largura
+st.image(image_logo, use_column_width=True)
+
+# Texto abaixo da imagem
+st.write(
+    "A sua tutora para apoiar alfabetização para cada criança, em cada sala de aula."
+)
+
 # Título principal em grande
 st.write("# Olá, professora Patrícia! :wave:")
 
 # Texto menor abaixo
 st.write(
-    "Sou a Ane, sua parceira na jornada da alfabetização! :star2:\n\n"
+    "Sou a AlfaTutor 🦉, sua companhia na jornada da alfabetização! :star2:\n\n"
     "Estou aqui para ajudar você a garantir que todas as suas crianças alcancem o sucesso na leitura e escrita.\n\n"
 )
 
@@ -49,32 +62,31 @@ def display_class_data(data: pd.DataFrame, turma: str, nome_busca: str = ""):
     # Início da explicação das hipóteses de escrita
     st.write("### Explicação das Hipóteses de Escrita")
     with st.expander("Clique para ver as explicações", expanded=True):
-        st.write(
-            "### Pré-silábica: \n"
-            "As produções são marcadas pela não correspondência entre partes do falado e partes do escrito, ou seja, não há correspondência sonora. "
-            "O uso aleatório de letras, a preferência por algumas delas (como as letras do próprio nome) e elementos gráficos como números e garatujas."
-        )
-        st.write(
-            "### Silábico sem valor sonoro: \n"
-            "A criança descobre que a quantidade de letras pode se relacionar com a quantidade de sílabas e entende que é preciso variar as letras ao escrever "
-            "tanto uma palavra quanto um conjunto delas. Nas produções, é comum a utilização de uma letra para cada sílaba. O aluno não usa, necessariamente, letras."
-        )
-        st.write(
-            "### Silábico com valor sonoro: \n"
-            "A criança entende que cada sílaba é representada por uma vogal ou consoante que expressa seu som correspondente. Em geral, as vogais são usadas para "
-            "representar cada valor sonoro. Há associação entre a quantidade de letras e quantidade de sílabas (mesmo que não conheçam ainda o conceito de sílaba)."
-        )
-        st.write(
-            "### Silábico-alfabética: \n"
-            "A criança não registra mais só uma letra para cada emissão de som, mas passa a colocar mais letras nos registros silábicos, às vezes usando-as de forma "
-            "pertinente, às vezes escolhendo-as aleatoriamente. Ao ler o que produziu, é comum que o aluno se incomode com o resultado, pedindo para trocar, eliminar ou "
-            "acrescentar letras. O incômodo é sinal de que ele está construindo hipóteses mais sofisticadas, aproximando sua escrita da convencional."
-        )
-        st.write(
-            "### Alfabética: \n"
-            "Produzir registros que podem ser lidos por outras pessoas e começa a se questionar sobre como grafar corretamente as palavras. É nessa fase, em geral, que "
-            "aparecem dúvidas sobre se a palavra é escrita com x ou ch, por exemplo. O aluno já entendeu que a escrita não é apenas uma transcrição do oral, e que várias "
-            "letras podem ser usadas para sinalizar um mesmo som, mas há regras e convenções que ditam as adequadas, caso a caso."
+        # Correção do HTML, garantindo que as tags estejam corretas e a formatação seja limpa
+        st.markdown(
+            """
+            <div style="background-color:#E6F7FF; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <h4 style="color:#005A9C; font-size:18px;">Pré-silábica:</h4>
+                <p style="font-size:16px; color:#333333;">As produções são marcadas pela não correspondência entre partes do falado e partes do escrito, ou seja, não há correspondência sonora. O uso aleatório de letras, a preferência por algumas delas (como as letras do próprio nome) e elementos gráficos como números e garatujas.</p>
+            </div>
+            <div style="background-color:#E6F7FF; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <h4 style="color:#005A9C; font-size:18px;">Silábico sem valor sonoro:</h4>
+                <p style="font-size:16px; color:#333333;">A criança descobre que a quantidade de letras pode se relacionar com a quantidade de sílabas e entende que é preciso variar as letras ao escrever tanto uma palavra quanto um conjunto delas. Nas produções, é comum a utilização de uma letra para cada sílaba. O aluno não usa, necessariamente, letras.</p>
+            </div>
+            <div style="background-color:#E6F7FF; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <h4 style="color:#005A9C; font-size:18px;">Silábico com valor sonoro:</h4>
+                <p style="font-size:16px; color:#333333;">A criança entende que cada sílaba é representada por uma vogal ou consoante que expressa seu som correspondente. Em geral, as vogais são usadas para representar cada valor sonoro. Há associação entre a quantidade de letras e quantidade de sílabas (mesmo que não conheçam ainda o conceito de sílaba).</p>
+            </div>
+            <div style="background-color:#E6F7FF; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <h4 style="color:#005A9C; font-size:18px;">Silábico-alfabética:</h4>
+                <p style="font-size:16px; color:#333333;">A criança não registra mais só uma letra para cada emissão de som, mas passa a colocar mais letras nos registros silábicos, às vezes usando-as de forma pertinente, às vezes escolhendo-as aleatoriamente. Ao ler o que produziu, é comum que o aluno se incomode com o resultado, pedindo para trocar, eliminar ou acrescentar letras. O incômodo é sinal de que ele está construindo hipóteses mais sofisticadas, aproximando sua escrita da convencional.</p>
+            </div>
+            <div style="background-color:#E6F7FF; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <h4 style="color:#005A9C; font-size:18px;">Alfabética:</h4>
+                <p style="font-size:16px; color:#333333;">Produzir registros que podem ser lidos por outras pessoas e começa a se questionar sobre como grafar corretamente as palavras. É nessa fase, em geral, que aparecem dúvidas sobre se a palavra é escrita com x ou ch, por exemplo. O aluno já entendeu que a escrita não é apenas uma transcrição do oral, e que várias letras podem ser usadas para sinalizar um mesmo som, mas há regras e convenções que ditam as adequadas, caso a caso.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
     
     # Agora, exibe o gráfico de pizza
@@ -130,7 +142,7 @@ def clean_response(response: str) -> str:
 
 def format_tips_as_html(tips: str) -> str:
     """
-    Formata as dicas como uma lista não ordenada (HTML), onde cada dica é um item da lista.
+    Formata as dicas como uma lista ordenada (HTML), onde cada dica é um item numerado.
     
     Parâmetros:
     tips (str): Dicas em formato de string. Cada dica pode ser separada por uma quebra de linha.
@@ -142,14 +154,14 @@ def format_tips_as_html(tips: str) -> str:
     dicas = [dica.strip() for dica in tips.split("\n") if dica.strip()]
     
     # Inicia a lista HTML
-    formatted_tips = "<ul>"
+    formatted_tips = "<ol>"  # Usando <ol> para uma lista numerada
     
     # Adiciona cada dica como um item de lista <li>
     for dica in dicas:
         formatted_tips += f"<li>{dica}</li>"
     
     # Fecha a lista HTML
-    formatted_tips += "</ul>"
+    formatted_tips += "</ol>"
     
     return formatted_tips
 
@@ -232,7 +244,7 @@ def main():
                 f"""
                 <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
                 <h3 style="color:#2a9d8f;">💡 Dicas da IA 🦙:</h3>
-                <p style="font-size:16px; color:#264653;">{tips}</p>
+                {tips}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -249,38 +261,48 @@ def main():
                # Chama a função para exibir os dados da turma com a busca por nome incluída
         display_class_data(data, turma)
 
-
     with tab_atividade:
-        st.subheader("Agora vamos preparar a sua próxima aula!")
+        st.subheader("Agora vamos preparar a sua próxima aula! 📝")
+        
+        # Botão para gerar a aula
         if st.button("Gerar Aula"):
             try:
-                current_month = datetime.datetime.now().strftime("%B de %Y")
-                perfis_turma = "Perfil detalhado da turma aqui."
+                current_month = datetime.datetime.now().strftime("%B de %Y")  # Obtém o mês atual
+                perfis_turma = "Perfil detalhado da turma aqui."  # Substitua com informações reais da turma
                 plano_aula = generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, current_month, perfis_turma)
+                
+                # Verifica se o plano de aula foi gerado
                 if plano_aula:
                     st.markdown(
                         f"""
-                        <div style="background-color:#ffffff; padding:20px; border-radius:10px; border:1px solid #e0e0e0;">
-                        {plano_aula}
+                        <div style="background-color:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #e0e0e0; margin-top:20px;">
+                            <h3 style="color:#2a9d8f; font-size:24px;">Plano de Aula Gerado! </h3>
+                            <p style="font-size:16px; color:#333333;">Aqui está o plano de aula detalhado para a sua turma:</p>
+                            <div style="font-size:16px; color:#333333;">
+                                {plano_aula}  <!-- Aqui é onde o conteúdo do plano de aula gerado será exibido -->
+                            </div>
                         </div>
                         """,
                         unsafe_allow_html=True
                     )
-
+                    
+                    # Opções de ação com botões
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         if st.button("📥 Baixar PDF"):
-                            st.info("Funcionalidade de download em desenvolvimento")
+                            st.info("Funcionalidade de download em desenvolvimento.")
                     with col2:
                         if st.button("✏️ Editar Plano"):
-                            st.info("Funcionalidade de edição em desenvolvimento")
+                            st.info("Funcionalidade de edição em desenvolvimento.")
                     with col3:
                         if st.button("💾 Salvar"):
-                            st.info("Funcionalidade de salvamento em desenvolvimento")
+                            st.info("Funcionalidade de salvamento em desenvolvimento.")
                 else:
                     st.error("❌ Não foi possível gerar o plano de aula. Tente novamente.")
+                    
             except Exception as e:
-                st.error(f"Erro ao gerar o plano: {str(e)}")
+                st.error(f"Erro ao gerar o plano de aula: {e}")
+
 
 if __name__ == "__main__":
     main()

@@ -1,65 +1,134 @@
-# 🛠️ Gerador de Atividades Personalizadas com APIs Externas
 
-Este projeto é um aplicativo de Streamlit que utiliza APIs externas para gerar atividades detalhadas e personalizadas. O fluxo de trabalho integra duas APIs principais para criar conteúdos envolventes e relevantes para diferentes finalidades, como a criação de atividades educacionais.
+# Sistema de Alfabetização e Planejamento de Aulas - AlfaTutor
 
-## 🚀 Funcionalidades Principais
+## Descrição
 
-- **Geração de conteúdos personalizados** utilizando uma API de busca de fragmentos de texto e a API Groq para processamento avançado com modelos de IA.
-- **Interface de usuário intuitiva** em Streamlit, permitindo a inserção de credenciais e a customização das atividades.
-- **Suporte a diferentes temas e níveis de dificuldade**, ajustando o conteúdo para atender necessidades variadas.
+O **AlfaTutor** é uma ferramenta interativa desenvolvida para ajudar os professores no processo de alfabetização e no planejamento de aulas. Utilizando a interface **Streamlit**, o sistema permite que os docentes visualizem o desempenho dos alunos, criem atividades educativas personalizadas e gerem planos de aula detalhados. A plataforma integra diferentes tecnologias de IA, como **Groq** e **Whisper**, para facilitar o ensino e a personalização do aprendizado.
 
-## 🛠️ Tecnologias Utilizadas
+## Funcionalidades
 
-- **Python**: Linguagem de programação para a lógica do projeto.
-- **Streamlit**: Framework para a criação da interface web interativa.
-- **Groq API**: Integração com o modelo LLaMA para processamento e geração de conteúdo.
-- **Requests**: Biblioteca para realizar chamadas HTTP.
-- **HTML e CSS**: Para estilização da exibição do conteúdo no Streamlit.
+### 1. **Visualização de Dados da Turma**
+O painel exibe informações detalhadas sobre o desempenho dos alunos, agrupados por **hipóteses de escrita**. Isso inclui gráficos e tabelas que permitem aos professores entenderem o progresso da turma e identificar áreas de melhoria.
 
-## 🔄 Fluxo de Trabalho
+### 2. **Explicações das Hipóteses de Escrita**
+O sistema fornece explicações detalhadas sobre as diferentes **hipóteses de escrita** com base no desenvolvimento da alfabetização dos alunos. As hipóteses são:
 
-1. **Entrada de credenciais**:
-   - O usuário insere o token de autenticação da API principal e a chave da API Groq diretamente na interface.
+- **Pré-silábica**
+- **Silábico sem valor sonoro**
+- **Silábico com valor sonoro**
+- **Silábico-alfabética**
+- **Alfabética**
 
-2. **Seleção de tema e dificuldade**:
-   - O usuário escolhe o tema da atividade e o nível de dificuldade a partir de menus suspensos no Streamlit.
+Essas explicações ajudam os professores a monitorar e guiar o desenvolvimento da escrita de seus alunos.
 
-3. **Requisição à API de fragmentos de texto**:
-   - A aplicação envia um payload à API `https://ragne.codebit.dev/rag/text-fragments` com uma solicitação para obter fragmentos de texto relacionados ao tema selecionado.
-   - A API principal retorna uma série de fragmentos de texto que serão usados como base para a atividade.
+### 3. **Gerador de Atividades**
+O sistema permite gerar atividades personalizadas de acordo com o nível de dificuldade e o tema desejado. As atividades são geradas dinamicamente com base em um conjunto de dados e APIs, como o modelo **Groq**, permitindo uma experiência adaptativa e interativa.
 
-4. **Processamento com a API Groq**:
-   - Os fragmentos de texto são processados com o modelo LLaMA da Groq para gerar uma atividade completa e bem estruturada.
-   - O prompt é criado dinamicamente para que a IA elabore uma atividade que inclui introdução, passo a passo detalhado, perguntas e dicas para professores.
+### 4. **Plano de Aula Inteligente**
+O **AlfaTutor** utiliza um modelo de IA para gerar planos de aula completos, considerando o componente curricular, unidade temática e os objetivos de conhecimento. Isso garante que os planos de aula sejam detalhados e otimizados de acordo com o nível de alfabetização da turma.
 
-5. **Exibição do resultado**:
-   - O resultado gerado pela API Groq é exibido de forma estilizada na interface do Streamlit.
+### 5. **Integração com WhatsApp**
+O sistema permite interação com alunos e professores via **WhatsApp**, utilizando a plataforma **Turn** para enviar e receber mensagens, garantindo um canal eficiente de comunicação.
 
-## 🧑‍🏫 Como Usar
+## Arquitetura do Sistema
 
-1. **Clone este repositório**:
+O sistema segue uma arquitetura de três camadas principais:
 
-   ```bash
-   git clone https://github.com/seuusuario/gerador-atividades.git
-   cd gerador-atividades
-# Guia de Início Rápido
+1. **Bancos de Dados**: Armazenamento das informações dos alunos, desempenho e planos de aula. Utiliza **MySQL** e **PostgreSQL (PG)**.
+2. **LLMs e APIs**:
+   - **Groq**: O modelo Groq processa e gera respostas para os prompts de planejamento de aula.
+   - **Whisper API**: Transcrição de áudio para texto, permitindo interações por voz.
+3. **Interface**:
+   - **Streamlit**: Interface interativa que permite visualização de dados e interação com o sistema.
+   - **WhatsApp via Turn**: Plataforma de comunicação com os usuários.
 
-## 1. Clone este repositório:
+## Fluxo de Dados
 
-  ```bash
-    git clone https://github.com/seuusuario/gerador-atividades.git
+O fluxo de dados começa com os **bancos de dados**, onde as informações da turma são armazenadas. As interações com o sistema, como análise de desempenho e a geração de atividades, são processadas através dos **modelos de linguagem** como o **Groq** e **Whisper** para transcrição de áudio. O sistema então exibe os resultados através da interface **Streamlit**, ou envia notificações via **WhatsApp**.
+
+## Tecnologias Utilizadas
+
+- **Streamlit**: Framework para criar interfaces interativas em Python.
+- **Pandas**: Biblioteca para análise de dados.
+- **Matplotlib**: Para gerar gráficos interativos.
+- **APIs**:
+  - **Groq**: Para geração de planos de aula detalhados.
+  - **Whisper**: Para transcrição de áudio em texto.
+  - **Turn**: Plataforma de integração com o WhatsApp.
+
+## Como Usar
+
+### 1. Clonando o Repositório
+
+Clone o repositório para o seu ambiente local:
+
+```bash
+git clone https://github.com/seu_usuario/alfatutor.git
+cd alfatutor
 ```
 
-## 2. Instale as dependências:
-  ```bash
-  pip install -r requirements.txt
+### 2. Instalando as Dependências
+
+Instale as dependências necessárias com o **pip**:
+
+```bash
+pip install -r requirements.txt
 ```
 
-3. Execute o aplicativo:
-  ```bash
-    streamlit run app.py
+### 3. Rodando o Aplicativo
+
+Para rodar o aplicativo **Streamlit**, execute:
+
+```bash
+streamlit run app.py
 ```
-Notas Importantes:
-- Certifique-se de ter o Python e o pip instalados em sua máquina antes de executar os comandos.
-- Para executar o aplicativo, será necessário fornecer suas credenciais de API quando solicitado pelo aplicativo Streamlit.
-- Verifique se suas chaves de API estão configuradas corretamente para garantir o funcionamento completo do aplicativo.
+
+### 4. Configuração das Credenciais
+
+Certifique-se de configurar a chave da **API Groq** no arquivo `secrets.toml`.
+
+### 5. Interação com o Sistema
+
+- **Visualizar a Turma**: Escolha a turma e visualize gráficos de desempenho.
+- **Gerar Atividades**: Selecione o tema e nível de dificuldade para gerar atividades.
+- **Gerar Planos de Aula**: O sistema usa IA para gerar planos personalizados.
+
+## Base de Dados de Planos de Aula
+
+A base de dados do **AlfaTutor** contém mais de **6.000 planos de aula** que servem como insumo para o processo de geração de novos planos. Para a demonstração, essa base foi recortada, oferecendo uma versão reduzida com exemplos de planos. Esses dados ajudam a IA a gerar planos de aula mais precisos e específicos, adaptados às necessidades da turma.
+
+## Exemplo de Interface
+
+Aqui está um exemplo de como o **AlfaTutor** se apresenta para os professores:
+
+![AlfaTutor Interface](sandbox:/mnt/data/image.png)
+
+**GIF da Demonstração da Interface:**
+
+![Demonstração](sandbox:/mnt/data/chrome-capture-2024-11-10%20(1).gif)
+
+## Contribuições
+
+Este projeto está aberto para contribuições. Para contribuir, siga os passos abaixo:
+
+1. Faça um **fork** do repositório.
+2. Crie uma **nova branch** para suas alterações.
+3. **Commit** suas alterações.
+4. Envie para o repositório remoto.
+5. Abra um **Pull Request** explicando as mudanças.
+
+## Licença
+
+Este projeto está licenciado sob a **MIT License**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## Contato
+
+Se você tiver dúvidas ou sugestões, entre em contato:
+
+- **Email**: contato@alfatutor.com
+- **LinkedIn**: [Seu LinkedIn](https://www.linkedin.com/in/seu-perfil)
+- **GitHub**: [Seu GitHub](https://github.com/seu_usuario)
+
+---
+
+Obrigado por usar o **AlfaTutor**! Estamos sempre em busca de melhorar e adicionar novas funcionalidades.

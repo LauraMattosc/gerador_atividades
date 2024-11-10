@@ -1,0 +1,121 @@
+{
+    "conteudos": [
+      {
+        "url": "https://novaescola.org.br/conteudo/21633/alfabetizacao-planejamento-escrita-leitura-por-ajuste",
+        "titulo": "Alfabetização: como analisar a escrita da turma para planejar as atividades",
+        "resumo": "Orienta professores na análise da escrita para planejar atividades de leitura e escrita, usando sondagens e atividades específicas.",
+        "temas": ["sondagem de escrita", "planejamento de atividades", "estratégias pedagógicas"],
+        "exemplos": [
+          "Usar listas de palavras para sondagem inicial.",
+          "Agrupamento de alunos por níveis de escrita, como pré-silábico e silábico-alfabético, para colaboração."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/21817/volta-as-aulas-planejamento-alfabetizacao",
+        "titulo": "Alfabetização: por onde começar?",
+        "resumo": "Direciona o planejamento nas primeiras semanas, partindo do conhecimento dos alunos e ajustando intervenções.",
+        "temas": ["planejamento inicial", "sondagem inicial", "adaptação pedagógica"],
+        "exemplos": [
+          "Propor a escrita de listas simples como uma lista de compras.",
+          "Usar palavras familiares para ajudar na construção da escrita."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/21665/alfabetizacao-para-que-e-como-investigar-o-que-as-criancas-sabem-sobre-o-sistema-de-escrita",
+        "titulo": "Sondagem na alfabetização: por que e como identificar os saberes da turma?",
+        "resumo": "Explora a importância de sondagens contínuas e atividades de observação para entender os saberes sobre o sistema de escrita.",
+        "temas": ["investigação contínua", "diagnóstico de alfabetização", "atividades integradas"],
+        "exemplos": [
+          "Pedir que os alunos escrevam uma lista de animais como parte da sondagem.",
+          "Perguntar aos alunos onde encontram certas palavras em textos conhecidos, como histórias populares."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/18102/hipotese-silabico-alfabetica-como-ajudar-as-criancas-a-chegar-mais-perto-da-escrita-convencional",
+        "titulo": "Hipótese silábico-alfabética: como ajudar as crianças a se aproximarem da escrita convencional",
+        "resumo": "Explora a transição da hipótese silábico-alfabética para a escrita convencional, incentivando o uso de palavras estáveis e duplas produtivas.",
+        "temas": ["transição para escrita convencional", "intervenções pedagógicas", "escrita fonológica"],
+        "exemplos": [
+          "Pedir que escrevam palavras monossílabas, como SOL e PÃO.",
+          "Leitura comparativa de nomes, como GABRIEL e GIOVANA, para observar sons."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/17957/alfabetizacao-hipotese-de-escrita-pre-silabica-no-que-devemos-prestar-atencao",
+        "titulo": "Escrita pré-silábica: no que devemos prestar atenção",
+        "resumo": "Discute a hipótese pré-silábica e as intervenções apropriadas para ajudar a criança a avançar na escrita.",
+        "temas": ["escrita inicial", "intervenções significativas", "evitar práticas prejudiciais"],
+        "exemplos": [
+          "Usar letras móveis para formar palavras simples como 'BOLO'.",
+          "Desafiar a criança a escrever uma palavra conhecida e ler o que escreveu, apontando com o dedo."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/2058/as-particularidades-das-escritas-silabico-alfabeticas",
+        "titulo": "As particularidades das escritas silábico-alfabéticas",
+        "resumo": "Descreve características da escrita silábico-alfabética, incluindo alternâncias grafofônicas e métodos para apoiar o desenvolvimento dos alunos.",
+        "temas": ["alternância grafofônica", "construção de escrita convencional", "estratégias de apoio"],
+        "exemplos": [
+          "Desafio com palavras que têm letras iniciais e finais semelhantes, como 'CAPA' e 'CANA'.",
+          "Solicitar leitura de listas para que percebam o valor sonoro das letras intermediárias."
+        ]
+      },
+      {
+        "url": "https://novaescola.org.br/conteudo/18051/escrita-silabica-com-valor-sonoro-o-que-observar-para-ajudar-a-turma-avancar",
+        "titulo": "Escrita silábica com valor sonoro: o que observar para ajudar a turma a avançar",
+        "resumo": "Explora a escrita silábica com valor sonoro e sugere atividades de apoio como leitura de listas e uso de duplas produtivas.",
+        "temas": ["escrita silábica", "valor sonoro", "leitura compartilhada"],
+        "exemplos": [
+          "Usar listas de palavras que comecem com o mesmo som, como 'MALA' e 'MATO'.",
+          "Colocar em pares uma criança que usa escrita silábica com valor sonoro com outra que está na fase silábico-alfabética."
+        ]
+      }
+    ],
+    "hipoteses_de_escrita": [
+      {
+        "nivel": "Pré-silábica",
+        "descricao": "Produções sem correspondência entre partes do falado e do escrito, uso aleatório de letras.",
+        "exemplos": ["AJFABEOIP para PANELA", "ABEV para MAÇÃ"],
+        "dicas": [
+          "Incentivar a interação com materiais escritos variados.",
+          "Permitir que a criança escreva durante brincadeiras de faz-de-conta."
+        ]
+      },
+      {
+        "nivel": "Silábico sem valor sonoro",
+        "descricao": "A criança usa uma letra para cada sílaba, mas sem relação com o som.",
+        "exemplos": ["CTD para BANANA", "ADOG para TELEFONE"],
+        "dicas": [
+          "Formar duplas para que a criança possa observar colegas mais avançados.",
+          "Pedir que a criança leia em voz alta o que escreveu."
+        ]
+      },
+      {
+        "nivel": "Silábico com valor sonoro",
+        "descricao": "Cada sílaba é representada por uma letra com valor sonoro correspondente.",
+        "exemplos": ["ABAI para ABACAXI", "AAO para MACACO / CAVALO"],
+        "dicas": [
+          "Organizar atividades em duplas produtivas.",
+          "Propor leitura de listas com palavras que comecem ou terminem com o mesmo som."
+        ]
+      },
+      {
+        "nivel": "Silábico-alfabética",
+        "descricao": "Combina letras para formar sílabas completas, aproximando-se da escrita convencional.",
+        "exemplos": ["HXUVVA para CHUVA", "CLEDRO para CALENDÁRIO"],
+        "dicas": [
+          "Pedir para que a criança leia o que escreveu e comparar com palavras conhecidas.",
+          "Usar listas de palavras e ditados de monossílabos para fomentar a reflexão."
+        ]
+      },
+      {
+        "nivel": "Alfabética",
+        "descricao": "Produz registros legíveis e convencionais, refletindo o uso das regras ortográficas.",
+        "exemplos": ["PASARO para PÁSSARO", "CAZA para CASA"],
+        "dicas": [
+          "Propor atividades de escrita de frases e textos curtos.",
+          "Incentivar a revisão do próprio texto para observar erros ortográficos."
+        ]
+      }
+    ]
+  }

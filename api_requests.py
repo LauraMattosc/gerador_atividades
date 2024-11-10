@@ -1,104 +1,132 @@
-import requests
-import json
-from groq import Groq
+from groq import Groq  # Certifique-se de ter instalado a biblioteca correta
+import logging
+import streamlit as st
+from typing import Optional
 
-def fetch_activity(api_token, tema, nivel_dificuldade):
-    """Faz uma requisição à API principal para obter a atividade.
+# Configuração do logger
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
-
-    Retorna:
-    str: Texto concatenado dos fragmentos da atividade ou None se a requisição falhar.
-    """
-    url_fragments = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-    payload_atividade = {
-        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
-    }
-    response = requests.post(url_fragments, headers=headers, data=json.dumps(payload_atividade))
-    if response.status_code in [200, 201]:
-        fragmentos = response.json()
-        print("Status: Requisição bem-sucedida.")
-        return "".join([frag['text'] for frag in fragmentos])
-    else:
-        print(f"Status: Erro na requisição. Código {response.status_code}")
-    return None
-
-def process_with_groq(groq_api_key, prompt):
-    """Processa o texto com a API Groq para gerar uma atividade detalhada.
-
-    Parâmetros:
-    groq_api_key (str): Chave de API para autenticação com a API Groq.
-    prompt (str): Prompt de texto para ser processado pela API.
-
-    Retorna:
-    str: Resposta gerada pela API ou None se falhar.
-    """
-    client = Groq(api_key=groq_api_key)
-    completion = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[{
-            "role": "user",
-            "content": prompt
-        }],
-        temperature=0.7,
-        max_tokens=1500,
-        top_p=1,
-        stream=True,
-        stop=None
-    )
-    resposta_final = ""
-    for chunk in completion:
-        if hasattr(chunk, 'choices') and chunk.choices[0].delta.content:
-            resposta_final += chunk.choices[0].delta.content
-    if resposta_final:
-        print("Status: Resposta processada com sucesso.")
-        return resposta_final
-    else:
-        print("Status: Falha ao processar a resposta.")
-    return None
-
-def generate_activity_with_rag(api_token, tema, nivel_dificuldade):
-    """Gera uma atividade usando a API RAG.
-
-    Parâmetros:
-    api_token (str): Token de autenticação da API principal.
-    tema (str): Tema da atividade a ser gerada.
-    nivel_dificuldade (str): Nível de dificuldade da atividade.
-
-    Retorna:
-    str: Texto da atividade gerada ou None se a requisição falhar.
-    """
-    url = "https://ragne.codebit.dev/rag/text-fragments"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-    data = {
-        "question": f"Crie uma atividade de {tema.lower()} com nível {nivel_dificuldade.lower()} para alunos de ensino fundamental."
-    }
-
+def load_api_key() -> Optional[str]:
+    """Carrega a chave da API do arquivo .streamlit/secrets.toml."""
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        resposta_json = response.json()
-        print(f"Resposta da API: {resposta_json}")
-        if isinstance(resposta_json, list):
-            return "".join([frag['text'] for frag in resposta_json])
+        logger.debug("Tentando acessar a API key diretamente do secrets.toml...")
+        api_key = st.secrets["groq_api_key"]
+        if api_key:
+            logger.info("API key carregada com sucesso.")
+            return api_key
         else:
-            raise Exception(f"Resposta inesperada da API: esperava uma lista, mas recebeu {type(resposta_json)}")
-    except requests.exceptions.HTTPError as http_err:
-        error_message = response.json().get('message', 'No additional error message provided')
-        raise Exception(f"HTTP error occurred: {http_err} - {error_message}")
-    except requests.exceptions.ConnectionError as conn_err:
-        raise Exception(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        raise Exception(f"Timeout error occurred: {timeout_err}")
-    except requests.exceptions.RequestException as req_err:
-        raise Exception(f"An error occurred: {req_err}")
+            logger.warning("API key não encontrada.")
+            return None
+    except KeyError as e:
+        logger.error(f"Chave 'groq_api_key' não encontrada: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Erro ao carregar API key: {e}")
+        return None
+
+def call_api(prompt: str, model: str = "llama-3.2-1b-preview") -> Optional[str]:
+    """
+    Processa o prompt usando a API Groq e retorna uma resposta ou um plano genérico em caso de falha.
+    """
+    logger.debug(f"Iniciando chamada à função call_api com o modelo: {model}")
+    try:
+        api_key = load_api_key()
+        if not api_key:
+            logger.error("API key não disponível. Abandonando chamada à API.")
+            return generate_generic_plan()
+
+        # Inicialize o cliente Groq com a chave da API
+        client = Groq(api_key=api_key)
+
+        logger.info("Enviando requisição para a API Groq...")
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um especialista em educação, focado em criar planos de aula detalhados e personalizados."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=4096,
+            top_p=1,
+            stream=True,  # Streaming de respostas
+            stop=None
+        )
+
+        logger.debug("Recebendo resposta da API com streaming.")
+        
+        # Armazena todo o conteúdo da resposta
+        response_content = ""
+        for chunk in completion:
+            part = chunk.choices[0].delta.content or ""
+            response_content += part  # Concatena a resposta sem exibir no loop
+
+        # Exibe o conteúdo final limpo uma única vez
+        if response_content.strip():
+            cleaned_response = clean_response(response_content)
+            logger.info("Resposta da API processada com sucesso.")
+            return cleaned_response
+        else:
+            logger.error("❌ O retorno da API foi nulo ou vazio.")
+            return generate_generic_plan()
+
+    except Exception as e:
+        logger.error(f"Erro ao fazer a chamada à API Groq: {e}")
+        return generate_generic_plan()
+
+def clean_response(response: str) -> str:
+    """
+    Limpa a resposta da API removendo quebras de linha e múltiplos espaços.
+    """
+    cleaned_response = response.replace('\n', ' ').replace('\r', '').strip()
+    cleaned_response = ' '.join(cleaned_response.split())
+    return cleaned_response
+
+def generate_generic_plan() -> str:
+    """
+    Gera um plano de aula genérico formatado para exibição.
+    """
+    logger.warning("Retornando plano de aula genérico devido a erro.")
+    return """
+    # Plano de Aula Genérico
+
+    ## Informações Gerais 📋
+    - **Duração Total:** 40 minutos
+    - **Componente Curricular:** [Componente]
+    - **Unidade Temática:** [Unidade Temática]
+    - **Objetivo de Conhecimento:** [Objetivo de Conhecimento]
+
+    ## Objetivo Geral 🎯
+    Fornecer uma introdução geral ao tema abordado.
+
+    ## Etapas da Aula ⏱️
+    ### 1. Abertura e Sensibilização (10 minutos)
+    - **Atividade:** Introdução ao tema com discussão breve.
+    - **Objetivo:** Engajar os alunos no assunto.
+
+    ### 2. Desenvolvimento Principal (20 minutos)
+    - **Atividade:** Explicação detalhada e prática guiada.
+    - **Objetivo:** Promover a compreensão e participação ativa dos alunos.
+
+    ### 3. Fechamento e Avaliação (10 minutos)
+    - **Atividade:** Revisão e perguntas finais.
+    - **Objetivo:** Consolidar o aprendizado e avaliar a compreensão.
+
+    ## Materiais Necessários 📚
+    - Material didático básico
+    - Quadro branco e marcadores
+
+    ## Avaliação e Acompanhamento 📊
+    - Observação direta e registro do progresso dos alunos.
+    """
+
+# Código para exibição no Streamlit, garantindo que a resposta seja exibida apenas uma vez:
+def display_response(response: Optional[str]):
+    if response:
+        st.markdown(f"<p>{response}</p>", unsafe_allow_html=True)

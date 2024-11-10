@@ -2,37 +2,28 @@ import streamlit as st
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from api_requests import call_api  # Remova qualquer referência a process_with_groq
+from api_requests import call_api  # Importando a função renomeada
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
-import toml
-from multimodality import *
-
-import toml
 import logging
-
-# Configuração do logger para imprimir no terminal
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Aulas", layout="wide")
 
+# Configuração do logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def configure_ui():
-    """Configura a interface do usuário usando o Streamlit."""
     st.title('📊 Painel da Classe e Gerador de Aulas')
 
-# Entradas principais do usuário
-def get_user_inputs(data):
-    """Captura as entradas de dados do usuário.
+# Funções de captura de entradas e exibição de dados da turma mantidas
 
-    Retorna:
-    tuple: Contendo a turma, componente, unidade temática e objetivo de conhecimento.
-    """
+def get_user_inputs(data):
+    """Captura as entradas de dados do usuário."""
     st.sidebar.header("Configurações da Atividade")
     turmas = data['class_name'].unique()
     turma = st.sidebar.selectbox("Escolha a turma:", turmas)
-    
     componente = st.sidebar.selectbox("Escolha o componente:", ["Matemática", "Língua Portuguesa", "Escrita Compartilhada e Autônoma"])
     unidade_tematica = st.sidebar.selectbox("Escolha a unidade temática:", ["Leitura", "Escrita", "Produção de Texto"])
     objetivos_map = {
@@ -45,6 +36,7 @@ def get_user_inputs(data):
     return turma, componente, unidade_tematica, objetivo_conhecimento
 
 # Função para exibir dados da turma
+
 def display_class_data(data, turma):
     if data is None:
         st.error("Erro ao carregar os dados da classe.")
@@ -93,46 +85,46 @@ def display_class_data(data, turma):
         color = color_map.get(val, '#FFFFFF')
         return f'background-color: {color}'
 
-    styled_data = data[['student_name', 'hypothesis_name']].style.map(highlight_hypothesis, subset=['hypothesis_name'])
+    styled_data = data[['student_name', 'hypothesis_name']].style.applymap(highlight_hypothesis, subset=['hypothesis_name'])
     st.dataframe(styled_data, width=1000)
 
-# Função para exibir o perfil da turma
-def display_class_profile(data, turma):
-    if data is None:
-        st.error("Erro ao carregar os dados da classe.")
-        logger.error("Erro ao carregar os dados da classe para exibição de perfil.")
-        return
-
-    data = data[data['class_name'] == turma]
-    hypothesis_counts = data['hypothesis_name'].value_counts()
-    
-    perfis_turma = ""
-    for hypothesis, count in hypothesis_counts.items():
-        perfis_turma += f"- **{hypothesis}:** {count} alunos\n"
-    
-    logger.info(f"Perfil da turma gerado: {perfis_turma}")
-    return perfis_turma
-
 # Função para analisar os dados da turma e fornecer dicas
+
 def analyze_class_data(data):
     prompt = generate_prompt_for_analysis(data)
-    logger.info(f"Prompt gerado para análise: {prompt}")  # Log para verificar o prompt
-    tips = call_api(prompt)
-    if tips is None:
-        logger.error("❌ O retorno da API foi nulo ou vazio para as dicas.")
+    logger.info(f"Prompt gerado para análise: {prompt}")
+    tips = call_api(prompt, model="llama2-70b-4096")  # Usando call_api genérico
+    if tips:
+        logger.info(f"Resposta da API para dicas: {tips}")
     else:
-        logger.info(f"Resposta da API para dicas: {tips}")  # Log para verificar a resposta da API
+        logger.error("❌ O retorno da API foi nulo ou vazio para as dicas.")
     return tips
 
-# Função principal para lidar com a lógica do aplicativo
+# Função para gerar plano de aula
+
+def generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, current_month, perfis_turma):
+    prompt = generate_prompt_for_activity(
+        componente,
+        unidade_tematica,
+        objetivo_conhecimento,
+        current_month,
+        perfis_turma
+    )
+    logger.info(f"Prompt gerado para o plano de aula: {prompt}")
+    plano_aula = call_api(prompt, model="llama2-90b-4096")  # Usando call_api genérico
+    if plano_aula:
+        logger.info("Plano de aula gerado com sucesso pela IA.")
+    else:
+        logger.error("❌ O retorno da API foi nulo ou vazio. Verifique o prompt e a resposta.")
+    return plano_aula
+
+# Função principal
+
 def main():
     configure_ui()
-  
+
     try:
         data = pd.read_csv('dados.csv')
-        config = toml.load('credentials.toml')
-        api_token = config.get("api_token", "Not found")
-        groq_api_key = config.get("groq_api_key", "Not found")
     except Exception as e:
         st.error(f"Erro ao carregar os dados do CSV: {e}")
         logger.error(f"Erro ao carregar dados: {e}")
@@ -140,22 +132,12 @@ def main():
 
     turma, componente, unidade_tematica, objetivo_conhecimento = get_user_inputs(data)
 
-    teacher = {'name': 'Silva'}
-    school = {'name': 'Escola Futuro Brilhante'}
-    class_data = {'name': turma, 'year': '2023'}
-
-    st.markdown(f"### Olá, Professora {teacher['name']}!")
-    st.markdown(f"**Escola:** {school['name']}")
-
-    current_month = datetime.datetime.now().strftime("%B de %Y")
-
     st.subheader("Resumo Estratégico")
     hypothesis_counts = data['hypothesis_name'].value_counts(normalize=True) * 100
     for hypothesis, percentage in hypothesis_counts.items():
         st.write(f"- **{hypothesis}:** {percentage:.1f}%")
 
     try:
-        groq_api_key = st.secrets["api"]["groq_api_key"]
         tips = analyze_class_data(data)
         if tips:
             st.markdown(
@@ -167,153 +149,41 @@ def main():
                 """,
                 unsafe_allow_html=True
             )
-        else:
-            st.error("❌ Erro ao processar a análise com a API Groq.")
-            logger.error("❌ O retorno da API foi nulo ou vazio para as dicas.")
     except Exception as e:
-        st.error(f"Erro ao analisar os dados com a IA da Llama: {e}")
+        st.error(f"Erro ao analisar os dados com a IA: {e}")
         logger.error(f"Erro ao analisar os dados com a IA: {e}")
 
-    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade","🖼️ Gerar Imagem"])
     tab_dados, tab_atividade = st.tabs(["📊 Dados da Classe", "📝 Gerar Aula"])
 
     with tab_dados:
         display_class_data(data, turma)
-        perfis_turma = display_class_profile(data, turma)
-        st.markdown(f"## Perfil da Turma\n{perfis_turma}")
-    
+
     with tab_atividade:
         if st.button("Gerar Aula"):
             try:
-                api_token = st.secrets["api"]["api_token"]
-                st.info("🚀 Gerando a atividade, por favor, aguarde...")
-                try:
-                    prompt = generate_prompt_for_activity(componente, unidade_tematica)
-                    atividade_texto = generate_activity_with_rag(api_token, prompt)
-                    if atividade_texto:
-                        st.success("✅ Requisição à API principal bem-sucedida.")
-                        resposta_final = process_with_groq(groq_api_key, atividade_texto)
-
-                        if resposta_final:
-                            st.markdown(
-                                f"""
-                                <div style="background-color:#f0f8ff; padding:15px; border-radius:10px;">
-                                <h3 style="color:#2a9d8f;">📝 Resultado da Atividade:</h3>
-                                <p style="font-size:16px; color:#264653;">{resposta_final}</p>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-
-                        # salva o resultado em arquivo .txt para ser acessado 
-                        # no processo de geração de imagem
-                        with open("resposta_final.txt", "w") as file:
-                            file.write(resposta_final)
-
-                        else:
-                            st.error("❌ Erro ao processar a atividade com a API Groq.")
-                    else:
-                        st.error("❌ Erro ao fazer a requisição à API principal. Verifique as credenciais e tente novamente.")
-                except Exception as e:
-                    st.error(f"❌ Erro ao fazer a requisição à API principal: {e}")
-            except KeyError as e:
-                st.error(f"Erro ao carregar as credenciais da API: {e}")
-                # Exibe o título do plano de aula após o botão ser pressionado
-                plano_titulo = f"Plano de Aula de {componente} para o {turma}"
-                st.subheader(plano_titulo)
-
-                # Gerar o prompt inicial
-                prompt = generate_prompt_for_activity(
-                    componente, 
-                    unidade_tematica, 
-                    objetivo_conhecimento, 
-                    current_month, 
-                    perfis_turma
-                )
-                
-                logger.info(f"Prompt gerado para o plano de aula: {prompt}")
-
-                # Exibir o prompt para verificação
-                with st.expander("Ver Prompt Enviado para IA"):
-                    st.markdown(prompt)
-
-                # Processar com a IA
-                st.info("🤖 Gerando plano de aula personalizado...")
-                plano_aula = call_api(prompt)
-
-                # Inclua esta verificação logo após a chamada da API
+                current_month = datetime.datetime.now().strftime("%B de %Y")
+                perfis_turma = "Perfil detalhado da turma aqui."  # Ajustar conforme necessidade
+                plano_aula = generate_lesson_plan(componente, unidade_tematica, objetivo_conhecimento, current_month, perfis_turma)
                 if plano_aula:
-                    st.write("✅ Plano de aula gerado com sucesso!")
-                    logger.info("Plano de aula gerado com sucesso pela IA.")
-                else:
-                    st.error("❌ O retorno da API foi nulo ou vazio. Verifique o prompt e a resposta.")
-                    st.write("📝 Detalhe do Prompt:", prompt)
-                    logger.warning("❌ Retorno da API vazio ou nulo.")
+                    st.markdown(
+                        f"""
+                        <div style="background-color:#ffffff; padding:20px; border-radius:10px; border:1px solid #e0e0e0;">
+                        {plano_aula}
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-                # O restante do código continua abaixo
-                if plano_aula:
-                    # Criar tabs para diferentes visualizações do plano
-                    plan_tab1, plan_tab2 = st.tabs(["📝 Plano Detalhado", "🔍 Versão Simplificada"])
-                    
-                    with plan_tab1:
-                        st.markdown(
-                            f"""
-                            <div style="background-color:#ffffff; padding:20px; border-radius:10px; border:1px solid #e0e0e0;">
-                            {plano_aula}
-                            </div>
-                            """, 
-                            unsafe_allow_html=True
-                        )
-                        
-                        # Botões de ação
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            if st.button("📥 Baixar PDF"):
-                                st.info("Funcionalidade de download em desenvolvimento")
-                        with col2:
-                            if st.button("✏️ Editar Plano"):
-                                st.info("Funcionalidade de edição em desenvolvimento")
-                        with col3:
-                            if st.button("💾 Salvar"):
-                                st.info("Funcionalidade de salvamento em desenvolvimento")
-                    
-                    with plan_tab2:
-                        # Versão simplificada do plano
-                        st.markdown("### Resumo do Plano")
-                        st.markdown(
-                            f"""
-                            - **Componente:** {componente}
-                            - **Unidade:** {unidade_tematica}
-                            - **Objetivo:** {objetivo_conhecimento}
-                            - **Data:** {current_month}
-                            """
-                        )
-                        
-                        # Feedback e Avaliação
-                        st.markdown("### 📊 Avalie este plano")
-                        feedback = st.slider(
-                            "Como você avalia este plano de aula?",
-                            1, 5, 3,
-                            help="1 = Precisa melhorar muito, 5 = Excelente"
-                        )
-                        
-                        if feedback <= 3:
-                            sugestoes = st.text_area(
-                                "Que aspectos você gostaria de melhorar neste plano?",
-                                height=100
-                            )
-                            if st.button("Enviar Sugestões"):
-                                st.success("Obrigado pelo feedback! Suas sugestões nos ajudarão a melhorar.")
-                        
-                        # Área de observações
-                        st.markdown("### 📝 Observações")
-                        observacoes = st.text_area(
-                            "Adicione suas observações sobre este plano",
-                            height=150
-                        )
-                        if st.button("Salvar Observações"):
-                            st.success("Observações salvas com sucesso!")
-
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if st.button("📥 Baixar PDF"):
+                            st.info("Funcionalidade de download em desenvolvimento")
+                    with col2:
+                        if st.button("✏️ Editar Plano"):
+                            st.info("Funcionalidade de edição em desenvolvimento")
+                    with col3:
+                        if st.button("💾 Salvar"):
+                            st.info("Funcionalidade de salvamento em desenvolvimento")
                 else:
                     st.error("❌ Não foi possível gerar o plano de aula. Tente novamente.")
                     st.markdown("### ❗ **Detalhes do Erro**")
@@ -325,12 +195,7 @@ def main():
                         - **📝 Prompt:** Erro ao processar
                         """
                     )
-
             except Exception as e:
-                st.error(f"Erro ao gerar a atividade: {e}")
-    
-    with tabs[2]:
-        create_image_ui()
                 st.error(f"Erro ao gerar o plano: {str(e)}")
                 st.markdown("### ❗ **Detalhes do Erro**")
                 st.markdown(
@@ -342,6 +207,7 @@ def main():
                     """
                 )
                 logger.error(f"Erro ao gerar o plano: {str(e)}")
+
 
 if __name__ == "__main__":
         main()

@@ -1,11 +1,12 @@
-import requests
-from typing import Optional, Dict, Any
-import json
-import os
-import streamlit as st
-import logging
+# api_requests.py
 
-# Configuração do logger para imprimir logs no terminal
+import requests
+from typing import Optional
+import json
+import logging
+import streamlit as st
+
+# Configuração do logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,24 +20,22 @@ def load_api_key() -> Optional[str]:
     try:
         api_key = st.secrets.get("groq_api_key")
         if api_key:
-            st.success("✅ API key carregada com sucesso")
             logger.info("API key carregada com sucesso.")
             return api_key
         else:
-            st.error("❌ API key não encontrada")
             logger.warning("API key não encontrada.")
             return None
     except Exception as e:
-        st.error(f"❌ Erro ao carregar API key: {e}")
         logger.error(f"Erro ao carregar API key: {e}")
         return None
 
-def call_api(prompt: str) -> Optional[str]:
+def call_api(prompt: str, model: str = "llama2-70b-4096") -> Optional[str]:
     """
-    Processa o prompt usando a API Groq e retorna um plano genérico em caso de falha.
+    Processa o prompt usando a API e retorna uma resposta ou um plano genérico em caso de falha.
 
     Parâmetros:
     prompt (str): O prompt a ser processado.
+    model (str): O modelo a ser usado na chamada da API.
 
     Retorna:
     Optional[str]: A resposta da API ou um plano genérico em caso de falha.
@@ -53,7 +52,7 @@ def call_api(prompt: str) -> Optional[str]:
         }
 
         data = {
-            "model": "llama2-70b-4096",
+            "model": model,
             "messages": [
                 {
                     "role": "system",
@@ -68,8 +67,7 @@ def call_api(prompt: str) -> Optional[str]:
             "max_tokens": 4096
         }
 
-        st.info("🔄 Enviando requisição para API Groq...")
-        logger.info("Enviando requisição para a API Groq com o seguinte payload:")
+        logger.info("Enviando requisição para a API com o seguinte payload:")
         logger.info(json.dumps(data, indent=2, ensure_ascii=False))
 
         response = requests.post(
@@ -85,41 +83,17 @@ def call_api(prompt: str) -> Optional[str]:
         if response.status_code == 200:
             try:
                 result = response.json()
-                logger.info(f"Resposta JSON da API: {json.dumps(result, indent=2, ensure_ascii=False)}")
                 content = result["choices"][0]["message"]["content"]
-                st.success("✅ Resposta da API recebida com sucesso")
                 return content
             except (KeyError, IndexError, json.JSONDecodeError) as parse_error:
-                st.error("❌ Erro ao processar a estrutura da resposta da API.")
                 logger.error(f"Erro ao processar a estrutura da resposta da API: {parse_error}")
                 return generate_generic_plan()
-        elif response.status_code == 429:
-            st.error("❌ Limite de requisições da API foi atingido. Tente novamente mais tarde.")
-            logger.error("Limite de requisições da API atingido. Verifique a quota disponível.")
-        elif response.status_code == 401:
-            st.error("❌ Falha de autenticação. Verifique a chave da API.")
-            logger.error("Falha de autenticação. Verifique a chave da API.")
-        elif response.status_code == 500:
-            st.error("❌ Erro interno do servidor da API. Tente novamente mais tarde.")
-            logger.error("Erro interno do servidor da API.")
         else:
-            st.error(f"❌ Erro na API: {response.status_code}")
-            st.error(f"Detalhes da resposta da API: {response.text}")
             logger.error(f"Erro na API: {response.status_code} - Detalhes: {response.text}")
+            return generate_generic_plan()
 
-        return generate_generic_plan()
-
-    except requests.exceptions.Timeout:
-        st.error("⏱️ Timeout na requisição à API")
-        logger.error("Timeout na requisição à API.")
-        return generate_generic_plan()
     except requests.exceptions.RequestException as e:
-        st.error(f"❌ Erro na requisição: {e}")
         logger.error(f"Erro na requisição: {e}")
-        return generate_generic_plan()
-    except Exception as e:
-        st.error(f"❌ Erro inesperado: {e}")
-        logger.error(f"Erro inesperado: {e}")
         return generate_generic_plan()
 
 def generate_generic_plan() -> str:

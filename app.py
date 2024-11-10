@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from api_requests import fetch_activity, process_with_groq, generate_activity_with_rag
 from prompt_dicas import generate_prompt_for_analysis
 from prompt_aula import generate_prompt_for_activity
+import toml
+from multimodality import *
+
 
 # Configuração da interface do Streamlit
 st.set_page_config(page_title="Painel da Classe e Gerador de Atividades", layout="wide")
@@ -165,7 +168,7 @@ def main():
     except Exception as e:
         st.error(f"Erro ao analisar os dados com a IA da Llama: {e}")
 
-    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade"])
+    tabs = st.tabs(["📊 Dados da Classe", "📝 Gerar Atividade","🖼️ Gerar Imagem"])
 
     with tabs[0]:
         display_class_data(data, turma)
@@ -192,6 +195,12 @@ def main():
                                 """,
                                 unsafe_allow_html=True
                             )
+
+                        # salva o resultado em arquivo .txt para ser acessado 
+                        # no processo de geração de imagem
+                        with open("resposta_final.txt", "w") as file:
+                            file.write(resposta_final)
+
                         else:
                             st.error("❌ Erro ao processar a atividade com a API Groq.")
                     else:
@@ -202,6 +211,9 @@ def main():
                 st.error(f"Erro ao carregar as credenciais da API: {e}")
             except Exception as e:
                 st.error(f"Erro ao gerar a atividade: {e}")
+    
+    with tabs[2]:
+        create_image_ui()
 
 if __name__ == "__main__":
     main()
